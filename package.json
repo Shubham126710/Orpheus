@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "postinstall": "node scripts/setup-vercel.js"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
     "@distube/ytsr": "^2.0.4",
     "@tanstack/react-query": "^5.101.4",
     "clsx": "^2.1.1",
@@ -25,6 +27,8 @@
     "youtube-ext": "^1.1.25",
     "youtube-sr": "^4.3.12",
     "yt-search": "^2.13.1",
+    "yt-stream": "^1.7.4",
+    "ytdl-core": "^4.11.5",
     "ytmusic-api": "^5.3.1",
     "zustand": "^5.0.14"
   },

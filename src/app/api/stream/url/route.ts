@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { create } from 'youtube-dl-exec';
 import path from 'path';
 
-const yt = create(path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', 'yt-dlp'));
+// Use the standalone linux binary on Vercel, otherwise use the default
+const binaryName = process.env.VERCEL ? 'yt-dlp_linux' : 'yt-dlp';
+const yt = create(path.join(process.cwd(), 'node_modules', 'youtube-dl-exec', 'bin', binaryName));
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
