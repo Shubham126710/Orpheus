@@ -121,8 +121,31 @@ export default function AudioEngine() {
   // Handle track changes
   useEffect(() => {
     if (currentTrack && audioRef.current) {
-      // Fetch via proxy stream
-      audioRef.current.src = `/api/stream?id=${currentTrack.id}`;
+      // First, get the direct YouTube URL from the Node.js backend
+      fetch(`/api/stream/url?id=${currentTrack.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.url && audioRef.current) {
+            // Then proxy it through the Edge runtime to bypass Vercel's 4.5MB limit
+            audioRef.current.src = `/api/stream/proxy?url=${encodeURIComponent(data.url)}`;
+            
+            if (isPlaying) {
+              audioRef.current.play().then(() => {
+                const audioCtx = (window as any).audioContext;
+                if (audioCtx && audioCtx.state === 'suspended') {
+                  audioCtx.resume();
+                }
+              }).catch(e => console.error("Audio playback failed", e));
+            }
+          } else {
+            console.error("No URL returned from stream extraction");
+            playNext();
+          }
+        })
+        .catch(err => {
+          console.error("Failed to extract URL:", err);
+          playNext();
+        });
       
       // Update Media Session metadata
       if ('mediaSession' in navigator) {
@@ -141,15 +164,7 @@ export default function AudioEngine() {
         });
       }
 
-      if (isPlaying) {
-        audioRef.current.play().then(() => {
-          // Resume AudioContext after a user gesture allows playback
-          const audioCtx = (window as any).audioContext;
-          if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume();
-          }
-        }).catch(e => console.error("Audio playback failed", e));
-      }
+
     } else if (!currentTrack && audioRef.current) {
       audioRef.current.pause();
       audioRef.current.removeAttribute('src');
