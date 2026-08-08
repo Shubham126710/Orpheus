@@ -20,15 +20,26 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const info = await yt(`https://www.youtube.com/watch?v=${id}`, {
+    const ytOptions = {
       dumpSingleJson: true,
       noWarnings: true,
       format: '140/bestaudio[ext=m4a]/bestaudio/best',
+      extractorArgs: 'youtube:client=android,web',
       addHeader: [
         'referer:youtube.com',
         'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
       ]
-    }) as any;
+    };
+
+    let info;
+    try {
+      // First attempt: Force IPv6. This perfectly bypasses YouTube IP bans on datacenter IPs like Render.
+      info = await yt(`https://www.youtube.com/watch?v=${id}`, { ...ytOptions, forceIpv6: true }) as any;
+    } catch (ipv6Error) {
+      console.log("IPv6 failed, falling back to IPv4...");
+      // Fallback: If the server doesn't support IPv6 (like local dev), use standard IPv4
+      info = await yt(`https://www.youtube.com/watch?v=${id}`, ytOptions) as any;
+    }
 
     if (!info || !info.url) {
       throw new Error("Could not extract URL");
