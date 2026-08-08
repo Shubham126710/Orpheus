@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePlayerStore } from "@/store/usePlayerStore";
+import YouTube, { YouTubePlayer } from "react-youtube";
 
 export default function AudioEngine() {
   const { currentTrack, isPlaying, setIsPlaying, setProgress, setCurrentTime, setDuration, seekTo, setSeekTo, playNext } = usePlayerStore();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  const [player, setPlayer] = useState<YouTubePlayer | null>(null);
+  const timeUpdateInterval = useRef<NodeJS.Timeout | null>(null);
+  const isScrubbing = useRef(false);
 
   // Register PWA Service Worker
   useEffect(() => {
@@ -16,77 +20,97 @@ export default function AudioEngine() {
     }
   }, []);
 
-  // Initialize audio element and Web Audio API
-  useEffect(() => {
-    if (!audioRef.current) {
-      const audio = new Audio();
-      audio.crossOrigin = "anonymous";
-      audioRef.current = audio;
+  const handleReady = (event: any) => {
+    setPlayer(event.target);
+  };
 
-      try {
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-        const audioCtx = new AudioCtx();
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 2048; // High resolution for time-domain waveform
-
-        const source = audioCtx.createMediaElementSource(audio);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-
-        // Expose globally for the visualizer component to read without React state overhead
-        (window as any).audioAnalyser = analyser;
-        (window as any).audioContext = audioCtx;
-      } catch (err) {
-        console.warn("Web Audio API could not be initialized", err);
-      }
-    }
-
-    const audio = audioRef.current;
-
-    const handleTimeUpdate = () => {
-      // Progress as percentage
-      if (audio.duration) {
-        setProgress((audio.currentTime / audio.duration) * 100);
-        setCurrentTime(audio.currentTime);
-        setDuration(audio.duration);
-      }
-    };
-
-    const handleEnded = () => {
-      playNext();
-    };
-
-    const handleError = () => {
-      console.warn("Audio playback error encountered. Skipping to next track.");
-      playNext();
-    };
-
-    const handlePlay = () => {
+  const handleStateChange = (event: any) => {
+    // PlayerState: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
+    const state = event.data;
+    
+    if (state === 1) { // PLAYING
       setIsPlaying(true);
+      if (player) {
+        setDuration(player.getDuration());
+      }
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
       }
-    };
-    const handlePause = () => {
+      
+      // Start time polling
+      if (!timeUpdateInterval.current) {
+        timeUpdateInterval.current = setInterval(() => {
+          if (player && player.getCurrentTime && !isScrubbing.current) {
+            const time = player.getCurrentTime();
+            const dur = player.getDuration();
+            if (dur > 0) {
+              setCurrentTime(time);
+              setProgress((time / dur) * 100);
+            }
+          }
+        }, 500);
+      }
+    } else if (state === 2) { // PAUSED
       setIsPlaying(false);
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'paused';
       }
-    };
+      // Stop time polling
+      if (timeUpdateInterval.current) {
+        clearInterval(timeUpdateInterval.current);
+        timeUpdateInterval.current = null;
+      }
+    } else if (state === 0) { // ENDED
+      // Stop time polling
+      if (timeUpdateInterval.current) {
+        clearInterval(timeUpdateInterval.current);
+        timeUpdateInterval.current = null;
+      }
+      playNext();
+    }
+  };
 
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("ended", handleEnded);
-    audio.addEventListener("error", handleError);
-    audio.addEventListener("play", handlePlay);
-    audio.addEventListener("pause", handlePause);
+  const handleError = () => {
+    console.warn("YouTube Player error encountered. Skipping to next track.");
+    playNext();
+  };
 
-    // Register Media Session Action Handlers
+  // Sync isPlaying state down to player
+  useEffect(() => {
+    if (player) {
+      if (isPlaying) {
+        player.playVideo();
+      } else {
+        player.pauseVideo();
+      }
+    }
+  }, [isPlaying, player]);
+
+  // Handle seeking from UI
+  useEffect(() => {
+    if (seekTo !== null && player) {
+      isScrubbing.current = true;
+      player.seekTo(seekTo, true);
+      setCurrentTime(seekTo);
+      if (player.getDuration() > 0) {
+         setProgress((seekTo / player.getDuration()) * 100);
+      }
+      // Brief delay to prevent jitter
+      setTimeout(() => {
+        isScrubbing.current = false;
+      }, 500);
+      setSeekTo(null);
+    }
+  }, [seekTo, setSeekTo, player, setCurrentTime, setProgress]);
+
+  // Media Session Handlers
+  useEffect(() => {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', () => {
-        audio.play().catch(console.error);
+        if (player) player.playVideo();
       });
       navigator.mediaSession.setActionHandler('pause', () => {
-        audio.pause();
+        if (player) player.pauseVideo();
       });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         usePlayerStore.getState().playPrevious();
@@ -96,108 +120,78 @@ export default function AudioEngine() {
       });
       navigator.mediaSession.setActionHandler('seekbackward', (details) => {
         const skipTime = details.seekOffset || 10;
-        audio.currentTime = Math.max(audio.currentTime - skipTime, 0);
+        if (player) {
+          const newTime = Math.max(player.getCurrentTime() - skipTime, 0);
+          player.seekTo(newTime, true);
+        }
       });
       navigator.mediaSession.setActionHandler('seekforward', (details) => {
         const skipTime = details.seekOffset || 10;
-        audio.currentTime = Math.min(audio.currentTime + skipTime, audio.duration);
+        if (player) {
+          const newTime = Math.min(player.getCurrentTime() + skipTime, player.getDuration());
+          player.seekTo(newTime, true);
+        }
       });
       navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime !== undefined && details.seekTime !== null) {
-          audio.currentTime = details.seekTime;
+        if (details.seekTime !== undefined && details.seekTime !== null && player) {
+          player.seekTo(details.seekTime, true);
         }
       });
     }
 
     return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("ended", handleEnded);
-      audio.removeEventListener("error", handleError);
-      audio.removeEventListener("play", handlePlay);
-      audio.removeEventListener("pause", handlePause);
+      if (timeUpdateInterval.current) {
+        clearInterval(timeUpdateInterval.current);
+      }
     };
-  }, [setProgress, setIsPlaying, playNext]);
+  }, [player]);
 
-  // Handle track changes
+  // Update Media Session Metadata
   useEffect(() => {
-    if (currentTrack && audioRef.current) {
-      // First, get the direct YouTube URL from the Node.js backend
-      fetch(`/api/stream/url?id=${currentTrack.id}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.url && audioRef.current) {
-            // Proxy the URL to bypass strict YouTube CORS restrictions
-            audioRef.current.src = `/api/stream/proxy?url=${encodeURIComponent(data.url)}`;
-            
-            if (isPlaying) {
-              audioRef.current.play().then(() => {
-                const audioCtx = (window as any).audioContext;
-                if (audioCtx && audioCtx.state === 'suspended') {
-                  audioCtx.resume();
-                }
-              }).catch(e => console.error("Audio playback failed", e));
-            }
-          } else {
-            console.error("No URL returned from stream extraction");
-            playNext();
-          }
-        })
-        .catch(err => {
-          console.error("Failed to extract URL:", err);
-          playNext();
-        });
-      
-      // Update Media Session metadata
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: currentTrack.title,
-          artist: currentTrack.artist,
-          album: currentTrack.album || 'Orpheus',
-          artwork: [
-            { src: currentTrack.thumbnail, sizes: '96x96', type: 'image/jpeg' },
-            { src: currentTrack.thumbnail, sizes: '128x128', type: 'image/jpeg' },
-            { src: currentTrack.thumbnail, sizes: '192x192', type: 'image/jpeg' },
-            { src: currentTrack.thumbnail, sizes: '256x256', type: 'image/jpeg' },
-            { src: currentTrack.thumbnail, sizes: '384x384', type: 'image/jpeg' },
-            { src: currentTrack.thumbnail, sizes: '512x512', type: 'image/jpeg' }
-          ]
-        });
-      }
-
-
-    } else if (!currentTrack && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.removeAttribute('src');
-      audioRef.current.load();
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = null;
-      }
+    if (currentTrack && 'mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentTrack.title,
+        artist: currentTrack.artist,
+        album: currentTrack.album || 'Orpheus',
+        artwork: [
+          { src: currentTrack.thumbnail, sizes: '96x96', type: 'image/jpeg' },
+          { src: currentTrack.thumbnail, sizes: '128x128', type: 'image/jpeg' },
+          { src: currentTrack.thumbnail, sizes: '192x192', type: 'image/jpeg' },
+          { src: currentTrack.thumbnail, sizes: '256x256', type: 'image/jpeg' },
+          { src: currentTrack.thumbnail, sizes: '384x384', type: 'image/jpeg' },
+          { src: currentTrack.thumbnail, sizes: '512x512', type: 'image/jpeg' }
+        ]
+      });
+    } else if (!currentTrack && 'mediaSession' in navigator) {
+      navigator.mediaSession.metadata = null;
     }
-  }, [currentTrack]); // We omit isPlaying to avoid restarting track on pause/play
+  }, [currentTrack]);
 
-  // Handle play/pause state from UI
-  useEffect(() => {
-    if (!audioRef.current || !audioRef.current.src) return;
-
-    if (isPlaying && audioRef.current.paused) {
-      audioRef.current.play().then(() => {
-        const audioCtx = (window as any).audioContext;
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
-      }).catch(e => console.error("Playback error:", e));
-    } else if (!isPlaying && !audioRef.current.paused) {
-      audioRef.current.pause();
-    }
-  }, [isPlaying]);
-
-  // Handle seeking from UI
-  useEffect(() => {
-    if (seekTo !== null && audioRef.current) {
-      audioRef.current.currentTime = seekTo;
-      setSeekTo(null);
-    }
-  }, [seekTo, setSeekTo]);
-
-  return null; // Invisible component
+  return (
+    <div className="hidden">
+      {/* Invisible YouTube Player. Rendered absolutely off-screen. */}
+      {currentTrack && (
+        <YouTube
+          videoId={currentTrack.id}
+          opts={{
+            height: '0',
+            width: '0',
+            playerVars: {
+              autoplay: isPlaying ? 1 : 0,
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              iv_load_policy: 3,
+              rel: 0,
+              showinfo: 0,
+              modestbranding: 1
+            },
+          }}
+          onReady={handleReady}
+          onStateChange={handleStateChange}
+          onError={handleError}
+        />
+      )}
+    </div>
+  );
 }

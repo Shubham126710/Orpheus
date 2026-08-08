@@ -53,49 +53,43 @@ export default function FullScreenPlayer() {
 
       const numPoints = 100;
       const currentPoints = new Float32Array(numPoints).fill(0);
+      let time = 0;
 
       const renderFrame = () => {
-        const analyser = (window as any).audioAnalyser;
-        
         ctx.clearRect(0, 0, rect.width, rect.height);
         ctx.beginPath();
         
         const centerY = rect.height / 2;
-        
-        let dataArray: Uint8Array | null = null;
-        if (isPlaying && analyser) {
-          if ((window as any).audioContext?.state === 'suspended') {
-            (window as any).audioContext.resume();
-          }
-          dataArray = new Uint8Array(analyser.frequencyBinCount);
-          // Use time-domain data for an authentic oscilloscope/waveform shape
-          analyser.getByteTimeDomainData(dataArray);
-        }
-
         ctx.moveTo(0, centerY);
+
+        time += 0.05;
 
         for (let i = 0; i < numPoints; i++) {
           let targetY = 0;
 
-          if (dataArray) {
-            // Map our numPoints to the analyser's bins
-            const dataIndex = Math.floor((i / numPoints) * dataArray.length);
-            // v is between -1.0 and 1.0 (128 is the center baseline in byte time domain)
-            const v = (dataArray[dataIndex] / 128.0) - 1.0; 
+          if (isPlaying) {
+            // Simulated waveform using math instead of Web Audio API
+            const normalized = i / numPoints;
+            // Create a complex wave using multiple sine waves
+            const wave1 = Math.sin(normalized * Math.PI * 4 + time * 1.5) * 0.5;
+            const wave2 = Math.sin(normalized * Math.PI * 8 - time * 2) * 0.3;
+            const wave3 = Math.sin(normalized * Math.PI * 2 + time * 0.5) * 0.2;
+            
+            // Add some "beat" reactivity (pulsing)
+            const pulse = Math.sin(time * 0.2) > 0.8 ? 1.5 : 1.0;
+            
+            const v = (wave1 + wave2 + wave3) * pulse;
 
             // Calculate distance from center (0 at center, 1 at edges)
             const dist = Math.abs(i - numPoints/2) / (numPoints/2);
             
             // Apply a window function so the waveform is concentrated in the center and flat at the edges.
-            // Math.cos cubed gives a very beautiful, organic bell curve drop-off.
             const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
             
-            // Target deviation from center baseline. 
-            // Increased multiplier for 3-5x amplitude, allowing peaks around 12-25px from center.
-            targetY = v * (rect.height / 2) * windowMultiplier * 2.2; 
+            targetY = v * (rect.height / 2) * windowMultiplier * 1.5; 
           }
 
-          // Smooth interpolation between frames (slightly increased for better reactivity).
+          // Smooth interpolation between frames
           currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
           
           const x = (i / (numPoints - 1)) * rect.width;
@@ -109,11 +103,10 @@ export default function FullScreenPlayer() {
         }
 
         ctx.strokeStyle = isLightMode ? "rgba(0, 0, 0, 0.6)" : "rgba(255, 255, 255, 0.9)";
-        ctx.lineWidth = 2.0; // 2px stroke
+        ctx.lineWidth = 2.0;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         
-        // Increased visible glow
         ctx.shadowBlur = 6;
         ctx.shadowColor = isLightMode ? "rgba(0, 0, 0, 0.3)" : "rgba(255, 255, 255, 0.6)";
         
@@ -125,7 +118,7 @@ export default function FullScreenPlayer() {
       renderFrame();
 
       return () => cancelAnimationFrame(animationFrameId);
-    }, [isPlaying]);
+    }, [isPlaying, isLightMode]);
 
     return (
       <div className={`w-28 md:w-36 h-16 flex items-center justify-center ${flip ? 'scale-x-[-1]' : ''}`}>
