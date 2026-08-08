@@ -79,22 +79,15 @@ export default function AudioEngine() {
 
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Sync isPlaying state down to player for programmatic triggers outside of store actions
-  // The isPlaying state is now synced synchronously in the Zustand store (usePlayerStore.ts)
-  // to comply with strict iOS Safari autoplay policies. Do not add async playVideo calls here.
-
-  // The Silent Audio Hack:
-  // To keep iOS Safari from suspending the YouTube IFrame when the screen locks or app is backgrounded,
-  // we must play a native HTML5 audio element. Safari sees the native audio playing and keeps the tab awake.
+  // Expose silent audio to global store on mount
   useEffect(() => {
     if (silentAudioRef.current) {
-      if (isPlaying) {
-        silentAudioRef.current.play().catch(e => console.log("Silent audio blocked:", e));
-      } else {
-        silentAudioRef.current.pause();
-      }
+      usePlayerStore.getState().setSilentAudio(silentAudioRef.current);
     }
-  }, [isPlaying]);
+  }, []);
+
+  // The isPlaying state is now synced synchronously in the Zustand store (usePlayerStore.ts)
+  // to comply with strict iOS Safari autoplay policies. Do not add async playVideo calls here.
 
   // Handle seeking from UI
   useEffect(() => {

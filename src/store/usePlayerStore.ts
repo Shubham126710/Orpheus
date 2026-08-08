@@ -43,6 +43,8 @@ interface PlayerState {
   playPlaylistShuffled: (tracks: Track[]) => void;
   ytPlayer: any | null;
   setYtPlayer: (player: any) => void;
+  silentAudio: HTMLAudioElement | null;
+  setSilentAudio: (audio: HTMLAudioElement) => void;
 }
 
 import { useLibraryStore } from './useLibraryStore';
@@ -62,16 +64,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   showLyrics: false,
   ytPlayer: null,
   setYtPlayer: (player) => set({ ytPlayer: player }),
+  silentAudio: null,
+  setSilentAudio: (audio) => set({ silentAudio: audio }),
 
   playTrack: (track, contextQueue) => {
     // Add to recently played automatically
     useLibraryStore.getState().addToRecent(track);
     
     // Synchronously trigger YouTube player for strict mobile Safari autoplay policies
-    const { ytPlayer } = get();
+    const { ytPlayer, silentAudio } = get();
     if (ytPlayer && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById(track.id);
       if (ytPlayer.playVideo) ytPlayer.playVideo();
+    }
+    if (silentAudio) {
+      silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
     }
     
     set((state) => {
@@ -101,10 +108,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setQueue: (tracks) => set({ queue: tracks }),
   
   playNext: () => {
-    const { queue, repeatMode, currentTrack, ytPlayer } = get();
+    const { queue, repeatMode, currentTrack, ytPlayer, silentAudio } = get();
     
     if (repeatMode === 'one' && currentTrack) {
       if (ytPlayer && ytPlayer.seekTo) ytPlayer.seekTo(0, true);
+      if (silentAudio) silentAudio.play().catch(() => {});
       set({ progress: 0, currentTime: 0, seekTo: 0, isPlaying: true });
       return;
     }
@@ -115,6 +123,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         ytPlayer.loadVideoById(nextTrack.id);
         if (ytPlayer.playVideo) ytPlayer.playVideo();
       }
+      if (silentAudio) silentAudio.play().catch(() => {});
       
       set({ 
         currentTrack: nextTrack, 
@@ -137,10 +146,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   
   setIsPlaying: (playing) => {
-    const { ytPlayer } = get();
+    const { ytPlayer, silentAudio } = get();
     if (ytPlayer) {
       if (playing && ytPlayer.playVideo) ytPlayer.playVideo();
       if (!playing && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+    }
+    if (silentAudio) {
+      if (playing) silentAudio.play().catch(() => {});
+      else silentAudio.pause();
     }
     set({ isPlaying: playing });
   },
@@ -174,11 +187,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const firstTrack = shuffled[0];
     const remaining = shuffled.slice(1);
     
-    const { ytPlayer } = get();
+    const { ytPlayer, silentAudio } = get();
     if (ytPlayer && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById(firstTrack.id);
       if (ytPlayer.playVideo) ytPlayer.playVideo();
     }
+    if (silentAudio) silentAudio.play().catch(() => {});
     
     set({
       currentTrack: firstTrack,
