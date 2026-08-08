@@ -71,6 +71,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { ytPlayer } = get();
     if (ytPlayer && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById(track.id);
+      if (ytPlayer.playVideo) ytPlayer.playVideo();
     }
     
     set((state) => {
@@ -110,7 +111,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     if (queue.length > 0) {
       const nextTrack = queue[0];
-      if (ytPlayer && ytPlayer.loadVideoById) ytPlayer.loadVideoById(nextTrack.id);
+      if (ytPlayer && ytPlayer.loadVideoById) {
+        ytPlayer.loadVideoById(nextTrack.id);
+        if (ytPlayer.playVideo) ytPlayer.playVideo();
+      }
       
       set({ 
         currentTrack: nextTrack, 
@@ -173,6 +177,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { ytPlayer } = get();
     if (ytPlayer && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById(firstTrack.id);
+      if (ytPlayer.playVideo) ytPlayer.playVideo();
     }
     
     set({

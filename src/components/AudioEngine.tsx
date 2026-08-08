@@ -77,16 +77,8 @@ export default function AudioEngine() {
     playNext();
   };
 
-  // Sync isPlaying state down to player for programmatic triggers outside of store actions
-  useEffect(() => {
-    if (player) {
-      if (isPlaying) {
-        player.playVideo();
-      } else {
-        player.pauseVideo();
-      }
-    }
-  }, [isPlaying, player]);
+  // The isPlaying state is now synced synchronously in the Zustand store (usePlayerStore.ts)
+  // to comply with strict iOS Safari autoplay policies. Do not add async playVideo calls here.
 
   // Handle seeking from UI
   useEffect(() => {
@@ -172,14 +164,14 @@ export default function AudioEngine() {
   }, [currentTrack]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none opacity-0 z-[-1]">
+    <div className="fixed top-0 left-0 w-8 h-8 z-[9999] opacity-[0.01] overflow-hidden pointer-events-none">
       {/* 
-        Safari blocks playback for 0x0 or display:none iframes. 
-        We use a full-size iframe that is visually hidden and non-interactive.
-        We render it unconditionally so the IFrame API is loaded before user click.
+        Safari rigorously blocks playback for iframes it considers hidden (opacity: 0, display: none, w/h 0, or deeply negative z-index).
+        We place it fixed at the top left, tiny, and almost completely transparent.
+        This fools Safari into thinking it's a visible element on screen, allowing synchronous playback.
       */}
       <YouTube
-        videoId={currentTrack?.id || 'dQw4w9WgXcQ'} // Dummy ID to initialize player
+        videoId="dQw4w9WgXcQ" // Dummy ID. We strictly control playback via the global ytPlayer API synchronously.
         opts={{
           height: '100%',
           width: '100%',
