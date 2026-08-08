@@ -70,15 +70,24 @@ export default function FullScreenPlayer() {
           if (isPlaying) {
             // Simulated waveform using math instead of Web Audio API
             const normalized = i / numPoints;
-            // Create a complex wave using multiple sine waves
-            const wave1 = Math.sin(normalized * Math.PI * 4 + time * 1.5) * 0.5;
-            const wave2 = Math.sin(normalized * Math.PI * 8 - time * 2) * 0.3;
-            const wave3 = Math.sin(normalized * Math.PI * 2 + time * 0.5) * 0.2;
             
-            // Add some "beat" reactivity (pulsing)
-            const pulse = Math.sin(time * 0.2) > 0.8 ? 1.5 : 1.0;
+            // Use irrational multipliers to ensure the pattern takes a very long time to repeat
+            const w1 = Math.sin(normalized * 15.3 + time * 1.7) * 0.4;
+            const w2 = Math.sin(normalized * 27.8 - time * 2.3) * 0.3;
+            const w3 = Math.sin(normalized * 7.1 + time * 0.8) * 0.2;
+            const w4 = Math.sin(normalized * 43.5 - time * 3.1) * 0.15;
+            const w5 = Math.sin(normalized * 3.14 + time * 1.1) * 0.3;
             
-            const v = (wave1 + wave2 + wave3) * pulse;
+            // Add pseudo-random "beat" spikes that occasionally jump up
+            const beat1 = Math.sin(time * 0.43) > 0.9 ? 1.8 : 1.0;
+            const beat2 = Math.sin(time * 0.71) > 0.95 ? 2.2 : 1.0;
+            const beat3 = Math.sin(time * 1.3) > 0.85 ? 1.4 : 1.0;
+            const activeBeat = Math.max(beat1, beat2, beat3);
+
+            // High frequency "fizz" for realism
+            const fizz = Math.sin(normalized * 100 + time * 10) * 0.05;
+            
+            const v = (w1 + w2 + w3 + w4 + w5 + fizz) * activeBeat;
 
             // Calculate distance from center (0 at center, 1 at edges)
             const dist = Math.abs(i - numPoints/2) / (numPoints/2);
@@ -86,11 +95,11 @@ export default function FullScreenPlayer() {
             // Apply a window function so the waveform is concentrated in the center and flat at the edges.
             const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
             
-            targetY = v * (rect.height / 2) * windowMultiplier * 1.5; 
+            targetY = v * (rect.height / 2) * windowMultiplier * 1.8; 
           }
 
-          // Smooth interpolation between frames
-          currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
+          // Fast interpolation for snappy movement
+          currentPoints[i] += (targetY - currentPoints[i]) * 0.3;
           
           const x = (i / (numPoints - 1)) * rect.width;
           const y = centerY + currentPoints[i];
