@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['youtube-dl-exec'],
-  outputFileTracingIncludes: {
-    '/api/stream/url': ['./node_modules/youtube-dl-exec/bin/**/*'],
-  },
   images: {
     remotePatterns: [
       {

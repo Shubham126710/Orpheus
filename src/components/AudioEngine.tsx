@@ -121,13 +121,15 @@ export default function AudioEngine() {
   // Handle track changes
   useEffect(() => {
     if (currentTrack && audioRef.current) {
-      // First, get the direct YouTube URL from the Node.js backend
-      fetch(`/api/stream/url?id=${currentTrack.id}`)
+      // Fetch the high quality mp4 stream directly from JioSaavn using the song title and artist
+      const query = encodeURIComponent(`${currentTrack.title} ${currentTrack.artist}`);
+      fetch(`/api/stream/saavn?query=${query}`)
         .then(res => res.json())
         .then(data => {
           if (data.url && audioRef.current) {
-            // Then proxy it through the Edge runtime to bypass Vercel's 4.5MB limit
-            audioRef.current.src = `/api/stream/proxy?url=${encodeURIComponent(data.url)}`;
+            // JioSaavn CDNs natively allow CORS, so we can directly assign the src
+            // bypassing Vercel entirely and saving bandwidth!
+            audioRef.current.src = data.url;
             
             if (isPlaying) {
               audioRef.current.play().then(() => {
@@ -138,7 +140,7 @@ export default function AudioEngine() {
               }).catch(e => console.error("Audio playback failed", e));
             }
           } else {
-            console.error("No URL returned from stream extraction");
+            console.error("No URL returned from JioSaavn extraction");
             playNext();
           }
         })
