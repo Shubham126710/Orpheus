@@ -168,14 +168,17 @@ export default function AudioEngine() {
   }, [currentTrack]);
 
   return (
-    <div className="hidden">
-      {/* Invisible YouTube Player. Rendered absolutely off-screen. */}
+    <div className="fixed inset-0 pointer-events-none opacity-0 z-[-1]">
+      {/* 
+        Safari blocks playback for 0x0 or display:none iframes. 
+        We use a full-size iframe that is visually hidden and non-interactive.
+      */}
       {currentTrack && (
         <YouTube
           videoId={currentTrack.id}
           opts={{
-            height: '0',
-            width: '0',
+            height: '100%',
+            width: '100%',
             playerVars: {
               autoplay: isPlaying ? 1 : 0,
               controls: 0,
@@ -184,7 +187,9 @@ export default function AudioEngine() {
               iv_load_policy: 3,
               rel: 0,
               showinfo: 0,
-              modestbranding: 1
+              modestbranding: 1,
+              playsinline: 1, // CRITICAL for iOS Safari to play without forcing fullscreen video
+              origin: typeof window !== 'undefined' ? window.location.origin : ''
             },
           }}
           onReady={handleReady}

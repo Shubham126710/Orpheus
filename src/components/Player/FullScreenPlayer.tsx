@@ -219,6 +219,27 @@ export default function FullScreenPlayer() {
     }
   }, [activeLineIndex, syncedLyrics]);
 
+  // Dynamically update Safari's theme-color to match the player background
+  // This prevents the jarring black rectangle at the bottom of the screen on mobile Safari
+  useEffect(() => {
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.setAttribute('name', 'theme-color');
+      document.head.appendChild(metaThemeColor);
+    }
+    
+    if (isExpanded) {
+      metaThemeColor.setAttribute('content', dominantColor || '#2A201A');
+    } else {
+      metaThemeColor.setAttribute('content', '#121212'); // Default app background
+    }
+
+    return () => {
+      metaThemeColor?.setAttribute('content', '#121212');
+    };
+  }, [isExpanded, dominantColor]);
+
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!progressRef.current || !track) return;
     const rect = progressRef.current.getBoundingClientRect();
