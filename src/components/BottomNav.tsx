@@ -68,10 +68,10 @@ export default function BottomNav() {
           {isSearch && (
             <motion.div
               initial={{ width: 0, opacity: 0, marginLeft: 0 }}
-              animate={{ width: typeof window !== 'undefined' && window.innerWidth < 768 ? 140 : 250, opacity: 1, marginLeft: 8 }}
+              animate={{ width: typeof window !== 'undefined' && window.innerWidth < 400 ? 120 : (typeof window !== 'undefined' && window.innerWidth < 768 ? 160 : 250), opacity: 1, marginLeft: 8 }}
               exit={{ width: 0, opacity: 0, marginLeft: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
-              className="relative flex items-center overflow-hidden h-10 md:h-12 shrink-0"
+              className="relative flex items-center overflow-hidden h-10 md:h-12 shrink-0 max-w-[40vw] md:max-w-none"
             >
               <div className="absolute left-2 md:left-3 text-white/40 pointer-events-none">
                 <Search size={16} className="md:w-[18px] md:h-[18px]" suppressHydrationWarning />
