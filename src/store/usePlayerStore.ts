@@ -41,6 +41,8 @@ interface PlayerState {
   toggleShuffle: () => void;
   setShowLyrics: (show: boolean) => void;
   playPlaylistShuffled: (tracks: Track[]) => void;
+  ytPlayer: any | null;
+  setYtPlayer: (player: any) => void;
 }
 
 import { useLibraryStore } from './useLibraryStore';
@@ -58,10 +60,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   repeatMode: 'off',
   isShuffled: false,
   showLyrics: false,
+  ytPlayer: null,
+  setYtPlayer: (player) => set({ ytPlayer: player }),
 
   playTrack: (track, contextQueue) => {
     // Add to recently played automatically
     useLibraryStore.getState().addToRecent(track);
+    
+    // Synchronously trigger YouTube player for strict mobile Safari autoplay policies
+    const { ytPlayer } = get();
+    if (ytPlayer && ytPlayer.loadVideoById) {
+      ytPlayer.loadVideoById(track.id);
+    }
     
     set((state) => {
       let newQueue = state.queue;
@@ -90,16 +100,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setQueue: (tracks) => set({ queue: tracks }),
   
   playNext: () => {
-    const { queue, repeatMode, currentTrack } = get();
+    const { queue, repeatMode, currentTrack, ytPlayer } = get();
     
     if (repeatMode === 'one' && currentTrack) {
-      // Just restart current track
+      if (ytPlayer && ytPlayer.seekTo) ytPlayer.seekTo(0, true);
       set({ progress: 0, currentTime: 0, seekTo: 0, isPlaying: true });
       return;
     }
 
     if (queue.length > 0) {
       const nextTrack = queue[0];
+      if (ytPlayer && ytPlayer.loadVideoById) ytPlayer.loadVideoById(nextTrack.id);
+      
       set({ 
         currentTrack: nextTrack, 
         queue: queue.slice(1),
@@ -109,16 +121,25 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         seekTo: 0
       });
     } else {
-      // If repeatMode === 'all', we would loop here if we kept history. For now, stop.
+      if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
       set({ currentTrack: null, isPlaying: false, progress: 0 });
     }
   },
   
   playPrevious: () => {
-    set({ progress: 0, currentTime: 0 }); 
+    const { ytPlayer } = get();
+    if (ytPlayer && ytPlayer.seekTo) ytPlayer.seekTo(0, true);
+    set({ progress: 0, currentTime: 0, seekTo: 0 }); 
   },
   
-  setIsPlaying: (playing) => set({ isPlaying: playing }),
+  setIsPlaying: (playing) => {
+    const { ytPlayer } = get();
+    if (ytPlayer) {
+      if (playing && ytPlayer.playVideo) ytPlayer.playVideo();
+      if (!playing && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+    }
+    set({ isPlaying: playing });
+  },
   setProgress: (progress) => set({ progress }),
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),
@@ -148,6 +169,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const shuffled = [...tracks].sort(() => Math.random() - 0.5);
     const firstTrack = shuffled[0];
     const remaining = shuffled.slice(1);
+    
+    const { ytPlayer } = get();
+    if (ytPlayer && ytPlayer.loadVideoById) {
+      ytPlayer.loadVideoById(firstTrack.id);
+    }
+    
     set({
       currentTrack: firstTrack,
       queue: remaining,

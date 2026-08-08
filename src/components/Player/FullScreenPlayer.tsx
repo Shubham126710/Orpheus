@@ -317,7 +317,7 @@ export default function FullScreenPlayer() {
 
                 {/* Background Layer (Art only, gets blurred on lyrics or queue) */}
                 <motion.div 
-                  className="relative h-full aspect-square bg-white p-3 md:p-4 shadow-[0_30px_60px_rgba(0,0,0,0.4)] flex-shrink-0 mx-6 md:mx-12 z-0"
+                  className="relative w-[70vw] h-[70vw] max-w-[350px] max-h-[350px] md:w-auto md:h-full md:aspect-square bg-white p-2 md:p-4 shadow-[0_30px_60px_rgba(0,0,0,0.4)] flex-shrink-0 mx-6 md:mx-12 z-0"
                   animate={{ 
                     scale: (showLyrics || showQueue) ? 0.8 : isPlaying ? 1 : 0.97,
                     opacity: (showLyrics || showQueue) ? 0.15 : 1,

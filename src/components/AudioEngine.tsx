@@ -22,6 +22,8 @@ export default function AudioEngine() {
 
   const handleReady = (event: any) => {
     setPlayer(event.target);
+    // Expose to Zustand for synchronous triggering on user clicks
+    usePlayerStore.getState().setYtPlayer(event.target);
   };
 
   const handleStateChange = (event: any) => {
@@ -75,7 +77,7 @@ export default function AudioEngine() {
     playNext();
   };
 
-  // Sync isPlaying state down to player
+  // Sync isPlaying state down to player for programmatic triggers outside of store actions
   useEffect(() => {
     if (player) {
       if (isPlaying) {
@@ -108,9 +110,11 @@ export default function AudioEngine() {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', () => {
         if (player) player.playVideo();
+        setIsPlaying(true);
       });
       navigator.mediaSession.setActionHandler('pause', () => {
         if (player) player.pauseVideo();
+        setIsPlaying(false);
       });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         usePlayerStore.getState().playPrevious();
@@ -144,7 +148,7 @@ export default function AudioEngine() {
         clearInterval(timeUpdateInterval.current);
       }
     };
-  }, [player]);
+  }, [player, setIsPlaying]);
 
   // Update Media Session Metadata
   useEffect(() => {
@@ -172,31 +176,30 @@ export default function AudioEngine() {
       {/* 
         Safari blocks playback for 0x0 or display:none iframes. 
         We use a full-size iframe that is visually hidden and non-interactive.
+        We render it unconditionally so the IFrame API is loaded before user click.
       */}
-      {currentTrack && (
-        <YouTube
-          videoId={currentTrack.id}
-          opts={{
-            height: '100%',
-            width: '100%',
-            playerVars: {
-              autoplay: isPlaying ? 1 : 0,
-              controls: 0,
-              disablekb: 1,
-              fs: 0,
-              iv_load_policy: 3,
-              rel: 0,
-              showinfo: 0,
-              modestbranding: 1,
-              playsinline: 1, // CRITICAL for iOS Safari to play without forcing fullscreen video
-              origin: typeof window !== 'undefined' ? window.location.origin : ''
-            },
-          }}
-          onReady={handleReady}
-          onStateChange={handleStateChange}
-          onError={handleError}
-        />
-      )}
+      <YouTube
+        videoId={currentTrack?.id || 'dQw4w9WgXcQ'} // Dummy ID to initialize player
+        opts={{
+          height: '100%',
+          width: '100%',
+          playerVars: {
+            autoplay: 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            iv_load_policy: 3,
+            rel: 0,
+            showinfo: 0,
+            modestbranding: 1,
+            playsinline: 1, // CRITICAL for iOS Safari to play without forcing fullscreen video
+            origin: typeof window !== 'undefined' ? window.location.origin : ''
+          },
+        }}
+        onReady={handleReady}
+        onStateChange={handleStateChange}
+        onError={handleError}
+      />
     </div>
   );
 }
