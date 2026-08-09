@@ -78,36 +78,38 @@ export default function FullScreenPlayer() {
           }
         }
 
-        // Calculate a very slight, soft amplitude based on energy. Max deviation ~12px
-        const maxAmplitude = 12;
+        // Calculate a very slight, soft amplitude based on energy. Max deviation ~35px
+        const maxAmplitude = 35;
 
         for (let i = 0; i < numPoints; i++) {
           let targetY = 0;
           const normalized = i / numPoints;
           
-          // Window function to taper the ends to zero smoothly
+          // Stronger Window function to taper the ends to zero smoothly, focusing activity in center
           const dist = Math.abs(i - numPoints/2) / (numPoints/2);
-          const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 2); // softer taper
+          const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 2.5);
 
           if (energy > 0 && isPlaying) {
             // Use low frequency bins (0 to 30%) for bass-driven organic movement
             const binIndex = Math.floor(normalized * dataArray!.length * 0.3);
             const freqVal = dataArray![binIndex] / 255.0; 
             
-            // Very soft additive sine waves + freq data
-            const w1 = Math.sin(normalized * 12 + time * 2) * 0.2;
-            const w2 = Math.sin(normalized * 5 - time) * 0.1;
-            const combined = freqVal * 0.7 + w1 + w2;
+            // Generate 2-5 expressive peaks organically
+            const w1 = Math.sin(normalized * Math.PI * 6 + time * 3) * 0.3;
+            const w2 = Math.sin(normalized * Math.PI * 10 - time * 2) * 0.2;
+            const w3 = Math.sin(normalized * Math.PI * 4 + time * 4) * 0.15;
+            
+            const combined = (freqVal * 0.8) + w1 + w2 + w3;
             
             targetY = combined * maxAmplitude * windowMultiplier;
-            // No mirroring per-point to avoid jaggedness! Just a smooth soft wave that oscillates up and down.
-            targetY *= Math.sin(normalized * Math.PI * 4 + time * 3);
+            // Add alternating oscillation so it waves up and down naturally
+            targetY *= Math.sin(normalized * Math.PI * 8 + time * 5);
           } else if (isPlaying) {
              // Fallback minimal pulse (CORS blocked)
-             const w1 = Math.sin(normalized * 10 + time * 2) * 0.4;
-             const w2 = Math.sin(normalized * 20 - time * 3) * 0.2;
-             const w3 = Math.sin(normalized * 5 + time) * 0.3;
-             const activeBeat = 1.0 + Math.pow(Math.sin(time * 2), 4) * 0.3;
+             const w1 = Math.sin(normalized * Math.PI * 8 + time * 3) * 0.5;
+             const w2 = Math.sin(normalized * Math.PI * 4 - time * 2) * 0.3;
+             const w3 = Math.sin(normalized * Math.PI * 12 + time * 4) * 0.2;
+             const activeBeat = 1.0 + Math.pow(Math.sin(time * 2), 4) * 0.4;
              targetY = (w1 + w2 + w3) * maxAmplitude * 0.6 * windowMultiplier * activeBeat;
           } else {
              targetY = 0;
@@ -148,7 +150,7 @@ export default function FullScreenPlayer() {
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         
-        ctx.shadowBlur = 4;
+        ctx.shadowBlur = 8;
         ctx.shadowColor = strokeColor;
         
         ctx.stroke();
@@ -162,7 +164,7 @@ export default function FullScreenPlayer() {
     }, [isPlaying, analyser, dominantColor]);
 
     return (
-      <div className={`w-24 md:w-32 h-12 flex items-center justify-center opacity-80 ${flip ? 'scale-x-[-1]' : ''}`}>
+      <div className={`w-28 md:w-40 h-24 flex items-center justify-center opacity-90 ${flip ? 'scale-x-[-1]' : ''}`}>
         <canvas ref={canvasRef} className="w-full h-full" style={{ width: '100%', height: '100%' }} />
       </div>
     );
