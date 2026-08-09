@@ -40,6 +40,7 @@ export default function FullScreenPlayer() {
   const VisualizerLine = ({ flip = false }: { flip?: boolean }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { analyser } = usePlayerStore();
+    const { dominantColor } = useThemeStore();
 
     useEffect(() => {
       let animationFrameId: number;
@@ -54,7 +55,7 @@ export default function FullScreenPlayer() {
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
 
-      const numPoints = 100;
+      const numPoints = 80; // slightly fewer points for smoother curve
       const currentPoints = new Float32Array(numPoints).fill(0);
       let time = 0;
       
@@ -67,122 +68,88 @@ export default function FullScreenPlayer() {
         const centerY = rect.height / 2;
         ctx.moveTo(0, centerY);
 
-        time += 0.05;
+        time += 0.03; // slower time progression for softer organic feel
 
+        let energy = 0;
         if (analyser && dataArray && isPlaying) {
           analyser.getByteFrequencyData(dataArray);
-          // Calculate an overall energy value for beating
-          let energy = 0;
           for (let i = 0; i < dataArray.length; i++) {
              energy += dataArray[i];
           }
-          
-          if (energy === 0) {
-             // Fallback Math visualization (CORS blocked the audio data)
-             for (let i = 0; i < numPoints; i++) {
-                let targetY = 0;
-                const normalized = i / numPoints;
-                const w1 = Math.sin(normalized * 15.3 + time * 1.7) * 0.4;
-                const w2 = Math.sin(normalized * 27.8 - time * 2.3) * 0.3;
-                const w3 = Math.sin(normalized * 7.1 + time * 0.8) * 0.2;
-                const w4 = Math.sin(normalized * 43.5 - time * 3.1) * 0.15;
-                const w5 = Math.sin(normalized * 3.14 + time * 1.1) * 0.3;
-                const b1 = Math.pow(Math.sin(time * 0.8), 8) * 0.8;
-                const b2 = Math.pow(Math.sin(time * 1.4 + 1), 6) * 0.6;
-                const activeBeat = 1.0 + b1 + b2;
-                const fizz = Math.sin(normalized * 100 + time * 10) * 0.05;
-                const v = (w1 + w2 + w3 + w4 + w5 + fizz) * activeBeat;
-                const dist = Math.abs(i - numPoints/2) / (numPoints/2);
-                const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
-                targetY = v * (rect.height / 2) * windowMultiplier * 1.5; 
-                
-                currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
-                const x = (i / (numPoints - 1)) * rect.width;
-                const y = centerY + currentPoints[i];
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-             }
-          } else {
-             const averageEnergy = energy / dataArray.length;
-             const activeBeat = 1.0 + (averageEnergy / 255) * 1.5;
-
-             for (let i = 0; i < numPoints; i++) {
-               // Map the 100 visual points to the frequency bins (use lower 70% of frequencies)
-            const binIndex = Math.floor((i / numPoints) * dataArray.length * 0.7);
-            const freqVal = dataArray[binIndex] / 255.0; // 0 to 1
-            
-            // Add some base fizz to make it look alive even in quiet parts
-            const fizz = Math.sin(i * 100 + time * 10) * 0.02;
-            const v = (freqVal + fizz) * activeBeat;
-
-            // Window function
-            const dist = Math.abs(i - numPoints/2) / (numPoints/2);
-            const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
-            
-            let targetY = v * (rect.height / 2) * windowMultiplier * 1.5;
-            
-            // Mirror logic since frequency data doesn't naturally have negative values
-            if (i % 2 === 0) targetY = -targetY;
-
-            currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
-            
-            const x = (i / (numPoints - 1)) * rect.width;
-            const y = centerY + currentPoints[i];
-            
-            if (i === 0) {
-              ctx.moveTo(x, y);
-            } else {
-              ctx.lineTo(x, y);
-            }
-          }
         }
-      } else {
-        // Fallback Math visualization
+
+        // Calculate a very slight, soft amplitude based on energy. Max deviation ~12px
+        const maxAmplitude = 12;
+
         for (let i = 0; i < numPoints; i++) {
           let targetY = 0;
+          const normalized = i / numPoints;
+          
+          // Window function to taper the ends to zero smoothly
+          const dist = Math.abs(i - numPoints/2) / (numPoints/2);
+          const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 2); // softer taper
 
-            if (isPlaying) {
-              const normalized = i / numPoints;
-              const w1 = Math.sin(normalized * 15.3 + time * 1.7) * 0.4;
-              const w2 = Math.sin(normalized * 27.8 - time * 2.3) * 0.3;
-              const w3 = Math.sin(normalized * 7.1 + time * 0.8) * 0.2;
-              const w4 = Math.sin(normalized * 43.5 - time * 3.1) * 0.15;
-              const w5 = Math.sin(normalized * 3.14 + time * 1.1) * 0.3;
-              
-              const b1 = Math.pow(Math.sin(time * 0.8), 8) * 0.8;
-              const b2 = Math.pow(Math.sin(time * 1.4 + 1), 6) * 0.6;
-              const activeBeat = 1.0 + b1 + b2;
-
-              const fizz = Math.sin(normalized * 100 + time * 10) * 0.05;
-              
-              const v = (w1 + w2 + w3 + w4 + w5 + fizz) * activeBeat;
-
-              const dist = Math.abs(i - numPoints/2) / (numPoints/2);
-              const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
-              
-              targetY = v * (rect.height / 2) * windowMultiplier * 1.5; 
-            }
-
-            currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
+          if (energy > 0 && isPlaying) {
+            // Use low frequency bins (0 to 30%) for bass-driven organic movement
+            const binIndex = Math.floor(normalized * dataArray!.length * 0.3);
+            const freqVal = dataArray![binIndex] / 255.0; 
             
-            const x = (i / (numPoints - 1)) * rect.width;
-            const y = centerY + currentPoints[i];
+            // Very soft additive sine waves + freq data
+            const w1 = Math.sin(normalized * 12 + time * 2) * 0.2;
+            const w2 = Math.sin(normalized * 5 - time) * 0.1;
+            const combined = freqVal * 0.7 + w1 + w2;
             
-            if (i === 0) {
-              ctx.moveTo(x, y);
-            } else {
-              ctx.lineTo(x, y);
-            }
+            targetY = combined * maxAmplitude * windowMultiplier;
+            // No mirroring per-point to avoid jaggedness! Just a smooth soft wave that oscillates up and down.
+            targetY *= Math.sin(normalized * Math.PI * 4 + time * 3);
+          } else if (isPlaying) {
+             // Fallback minimal pulse (CORS blocked)
+             const w1 = Math.sin(normalized * 10 + time * 2) * 0.4;
+             const w2 = Math.sin(normalized * 20 - time * 3) * 0.2;
+             const w3 = Math.sin(normalized * 5 + time) * 0.3;
+             const activeBeat = 1.0 + Math.pow(Math.sin(time * 2), 4) * 0.3;
+             targetY = (w1 + w2 + w3) * maxAmplitude * 0.6 * windowMultiplier * activeBeat;
+          } else {
+             targetY = 0;
+          }
+
+          // Smooth interpolation
+          currentPoints[i] += (targetY - currentPoints[i]) * 0.15;
+          
+          const x = (i / (numPoints - 1)) * rect.width;
+          const y = centerY + currentPoints[i];
+          
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
           }
         }
 
-        ctx.strokeStyle = isLightMode ? "rgba(0, 0, 0, 0.6)" : "rgba(255, 255, 255, 0.9)";
-        ctx.lineWidth = 2.0;
+        // Parse dominant color to slightly lighten it for the stroke
+        let strokeColor = "rgba(255, 255, 255, 0.7)";
+        if (dominantColor && dominantColor !== "transparent") {
+           // We expect a hex like #RRGGBB
+           let r = 255, g = 255, b = 255;
+           if (dominantColor.length === 7) {
+             r = parseInt(dominantColor.slice(1,3), 16);
+             g = parseInt(dominantColor.slice(3,5), 16);
+             b = parseInt(dominantColor.slice(5,7), 16);
+           }
+           // Lighten and desaturate slightly for the glowing stroke
+           const mixR = Math.floor(r + (255 - r) * 0.6);
+           const mixG = Math.floor(g + (255 - g) * 0.6);
+           const mixB = Math.floor(b + (255 - b) * 0.6);
+           strokeColor = `rgba(${mixR}, ${mixG}, ${mixB}, 0.9)`;
+        }
+
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 1.5;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = isLightMode ? "rgba(0, 0, 0, 0.3)" : "rgba(255, 255, 255, 0.6)";
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = strokeColor;
         
         ctx.stroke();
 
@@ -192,10 +159,10 @@ export default function FullScreenPlayer() {
       renderFrame();
 
       return () => cancelAnimationFrame(animationFrameId);
-    }, [isPlaying, isLightMode, analyser]);
+    }, [isPlaying, analyser, dominantColor]);
 
     return (
-      <div className={`w-28 md:w-36 h-16 flex items-center justify-center ${flip ? 'scale-x-[-1]' : ''}`}>
+      <div className={`w-24 md:w-32 h-12 flex items-center justify-center opacity-80 ${flip ? 'scale-x-[-1]' : ''}`}>
         <canvas ref={canvasRef} className="w-full h-full" style={{ width: '100%', height: '100%' }} />
       </div>
     );
