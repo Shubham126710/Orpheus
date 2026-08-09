@@ -11,8 +11,8 @@ export default function Footer() {
         {/* Brand & Project Info */}
         <div className="flex flex-col max-w-md">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center p-2 rotate-3 hover:rotate-12 transition-transform shadow-lg">
-              <img src="/favicon.png" alt="Orpheus Logo" className="w-full h-full object-contain filter invert" />
+            <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center p-1.5 rotate-3 hover:rotate-12 transition-transform shadow-lg">
+              <img src="/icon-512x512.png" alt="Orpheus Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-3xl tracking-[0.2em] font-geist font-black uppercase">Orpheus</h2>
           </div>

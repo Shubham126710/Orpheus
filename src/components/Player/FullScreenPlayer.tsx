@@ -10,6 +10,7 @@ import { useEffect, useState, useRef } from "react";
 import { useColorExtraction } from "@/hooks/useColorExtraction";
 import PlaylistModal from "@/components/PlaylistModal";
 import FocusMode from "./FocusMode";
+import RetroFilmBackground from "./RetroFilmBackground";
 
 export default function FullScreenPlayer() {
   const { currentTrack, isPlaying, setIsPlaying, playNext, playPrevious, playTrack, queue, progress, setProgress, isExpanded, setIsExpanded, currentTime, duration, setSeekTo, repeatMode, toggleRepeat, isShuffled, toggleShuffle, showLyrics, setShowLyrics } = usePlayerStore();
@@ -337,11 +338,10 @@ export default function FullScreenPlayer() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed inset-0 z-[200] flex flex-col overflow-y-auto overflow-x-hidden bg-noise"
-          style={{ backgroundColor: dominantColor ? dominantColor : '#2A201A' }}
+          className="fixed inset-0 z-[200] flex flex-col overflow-y-auto overflow-x-hidden"
         >
-          {/* Noise Overlay for retro feel */}
-          <div className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+          {/* Procedural Analog Film Background */}
+          <RetroFilmBackground dominantColor={dominantColor} />
 
           <div className="relative z-10 flex flex-col h-[100dvh] px-4 md:px-8 py-6 md:py-10 max-w-5xl mx-auto w-full justify-between">
             {/* Top Area (Header & Title) */}
