@@ -165,8 +165,14 @@ export default function AudioEngine() {
   // Media Session Handlers
   useEffect(() => {
     if ('mediaSession' in navigator) {
-      // Let iOS natively handle Play/Pause for the underlying video tag so the Lock Screen workaround functions.
-      // We only intercept next/previous tracks.
+      navigator.mediaSession.setActionHandler('play', () => {
+        const store = usePlayerStore.getState();
+        if (!store.isPlaying) store.togglePlay();
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        const store = usePlayerStore.getState();
+        if (store.isPlaying) store.togglePlay();
+      });
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         usePlayerStore.getState().playPrevious();
       });

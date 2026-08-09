@@ -184,10 +184,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         // We must wait for the native audio to fully buffer and actually start playing before handing off.
         const onPlaying = () => {
           set({ isUsingNative: true });
-          const { ytPlayer } = get();
-          if (ytPlayer && ytPlayer.pauseVideo) {
-            ytPlayer.pauseVideo();
-          }
           silentAudio.removeEventListener('playing', onPlaying);
         };
         silentAudio.addEventListener('playing', onPlaying);
