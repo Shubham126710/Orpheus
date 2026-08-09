@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo.png" alt="Orpheus Logo" width="150" />
+  <img src="public/favicon.png" alt="Orpheus Logo" width="150" />
   <p align="center">
     <br/>
     <strong>A premium, high-performance cinematic music streaming experience.</strong>
