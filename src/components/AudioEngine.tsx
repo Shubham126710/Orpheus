@@ -53,14 +53,23 @@ export default function AudioEngine() {
         }, 500);
       }
     } else if (state === 2) { // PAUSED
-      setIsPlaying(false);
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = 'paused';
-      }
-      // Stop time polling
-      if (timeUpdateInterval.current) {
-        clearInterval(timeUpdateInterval.current);
-        timeUpdateInterval.current = null;
+      const storeIsPlaying = usePlayerStore.getState().isPlaying;
+      
+      // If YouTube internally paused the video (due to screen lock / visibility change)
+      // but the user didn't explicitly pause it, force it back to playing immediately!
+      if (storeIsPlaying) {
+        console.log("YouTube auto-paused, forcing play!");
+        event.target.playVideo();
+      } else {
+        setIsPlaying(false);
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'paused';
+        }
+        // Stop time polling
+        if (timeUpdateInterval.current) {
+          clearInterval(timeUpdateInterval.current);
+          timeUpdateInterval.current = null;
+        }
       }
     } else if (state === 0) { // ENDED
       // Stop time polling
