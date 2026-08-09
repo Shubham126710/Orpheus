@@ -3,83 +3,129 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const messages = ["TUNING IN", "SETTING THE STAGE", "ALMOST THERE"];
+const phrases = [
+  "TUNING IN",
+  "FINDING YOUR SOUND",
+  "SETTING THE STAGE",
+  "ALMOST THERE"
+];
 
 export default function SplashScreen() {
-  const [msgIndex, setMsgIndex] = useState(0);
+  const [phraseIndex, setPhraseIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMsgIndex((prev) => (prev + 1) % messages.length);
-    }, 2200);
+      setPhraseIndex((prev) => (prev + 1) % phrases.length);
+    }, 2800);
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#E9C052] text-black overflow-hidden">
       
-      {/* Subtle Analog Grain */}
+      {/* Subtle Analog Grain - Keeps the warm Orpheus feel */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-[0.04] mix-blend-overlay motion-reduce:hidden" 
+        className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-overlay motion-reduce:hidden" 
         style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}
       ></div>
 
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative flex flex-col items-center justify-center z-10"
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative flex flex-col items-center justify-center z-10 w-full"
       >
-        <div className="w-28 h-28 mb-8">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="w-28 h-28 mb-8"
+        >
           <img 
             src="/logo.png" 
             alt="Orpheus Logo"
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain drop-shadow-sm"
           />
-        </div>
+        </motion.div>
         
-        <h1 className="text-3xl font-geist font-black uppercase tracking-[0.4em] opacity-90 mb-8 ml-2">
+        <motion.h1 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 0.9, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="text-3xl font-geist font-black uppercase tracking-[0.4em] mb-12 ml-2"
+        >
           Orpheus
-        </h1>
+        </motion.h1>
 
-        {/* Organic Waveform Loader */}
-        <div className="relative w-[120px] h-8 flex items-center justify-start overflow-hidden mb-6 opacity-80">
-           {/* Faded track */}
-           <svg width="120" height="24" viewBox="0 0 120 24" className="absolute left-0 opacity-10 fill-none stroke-black stroke-[1.5] stroke-linecap-round stroke-linejoin-round">
-             <path d="M 0,12 C 10,12 12,8 15,12 C 18,16 22,6 25,12 C 28,18 32,10 35,12 C 40,12 45,12 50,12 C 55,7 60,17 65,12 C 70,5 75,19 80,12 C 85,12 90,12 95,12 C 100,8 105,16 110,12 C 115,12 120,12 120,12" />
-           </svg>
-           
-           {/* Active filling waveform */}
-           <motion.div 
-             className="absolute left-0 h-full overflow-hidden flex items-center"
-             initial={{ width: "0%" }}
-             animate={{ width: "100%" }}
-             transition={{ duration: 3.5, ease: "linear" }}
-           >
-             <motion.svg 
-               width="120" height="24" viewBox="0 0 120 24" 
-               className="fill-none stroke-black stroke-[1.5] stroke-linecap-round stroke-linejoin-round"
-               animate={{ scaleY: [1, 1.1, 0.9, 1] }}
-               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-             >
-               <path d="M 0,12 C 10,12 12,8 15,12 C 18,16 22,6 25,12 C 28,18 32,10 35,12 C 40,12 45,12 50,12 C 55,7 60,17 65,12 C 70,5 75,19 80,12 C 85,12 90,12 95,12 C 100,8 105,16 110,12 C 115,12 120,12 120,12" />
-             </motion.svg>
-           </motion.div>
-        </div>
+        {/* Elegant Breathing Waveform */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="relative w-[140px] h-12 flex items-center justify-center mb-8 opacity-80"
+        >
+          <svg width="140" height="48" viewBox="0 0 140 48" className="overflow-visible fill-none stroke-black stroke-[1.5] stroke-linecap-round">
+            {/* Background static line */}
+            <path d="M 0,24 Q 35,24 70,24 T 140,24" className="opacity-[0.08]" />
+            
+            {/* Animating waveforms */}
+            <motion.path 
+              d="M 0,24 Q 35,24 70,24 T 140,24"
+              animate={{
+                d: [
+                  "M 0,24 Q 35,24 70,24 T 140,24",
+                  "M 0,24 Q 35,4 70,24 T 140,24",
+                  "M 0,24 Q 35,44 70,24 T 140,24",
+                  "M 0,24 Q 35,24 70,24 T 140,24"
+                ]
+              }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              className="opacity-70"
+            />
+            <motion.path 
+              d="M 0,24 Q 35,24 70,24 T 140,24"
+              animate={{
+                d: [
+                  "M 0,24 Q 35,24 70,24 T 140,24",
+                  "M 0,24 Q 35,44 70,24 T 140,24",
+                  "M 0,24 Q 35,4 70,24 T 140,24",
+                  "M 0,24 Q 35,24 70,24 T 140,24"
+                ]
+              }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
+              className="opacity-40"
+            />
+            <motion.path 
+              d="M 0,24 Q 35,24 70,24 T 140,24"
+              animate={{
+                d: [
+                  "M 0,24 Q 35,24 70,24 T 140,24",
+                  "M 0,24 Q 35,14 70,24 T 140,24",
+                  "M 0,24 Q 35,34 70,24 T 140,24",
+                  "M 0,24 Q 35,24 70,24 T 140,24"
+                ]
+              }}
+              transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+              className="opacity-30"
+            />
+          </svg>
+        </motion.div>
 
-        {/* Cycling Microcopy */}
+        {/* Animated Loading Text */}
         <div className="h-4 relative flex items-center justify-center w-full">
           <AnimatePresence mode="wait">
-            <motion.p 
-              key={msgIndex}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.6 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="absolute text-[10px] font-geist font-bold tracking-[0.35em] uppercase text-center"
+            <motion.div
+              key={phraseIndex}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 0.6, y: 0 }}
+              exit={{ opacity: 0, y: -5 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="absolute flex"
             >
-              {messages[msgIndex]}
-            </motion.p>
+              <p className="text-[10px] font-geist font-bold tracking-[0.35em] uppercase text-center">
+                {phrases[phraseIndex]}
+              </p>
+            </motion.div>
           </AnimatePresence>
         </div>
       </motion.div>
