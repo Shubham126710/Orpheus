@@ -30,6 +30,7 @@ interface PlayerState {
   setQueue: (tracks: Track[]) => void;
   playNext: () => void;
   playPrevious: () => void;
+  togglePlay: () => void;
   setIsPlaying: (playing: boolean) => void;
   setProgress: (progress: number) => void;
   setCurrentTime: (time: number) => void;
