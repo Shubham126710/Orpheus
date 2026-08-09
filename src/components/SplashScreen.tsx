@@ -57,58 +57,34 @@ export default function SplashScreen() {
           Orpheus
         </motion.h1>
 
-        {/* Elegant Breathing Waveform */}
+        {/* Elegant Minimal Audio Pulse */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.5 }}
-          className="relative w-[140px] h-12 flex items-center justify-center mb-8 opacity-80"
+          className="relative h-8 flex items-center justify-center gap-[5px] mb-8 mt-2"
         >
-          <svg width="140" height="48" viewBox="0 0 140 48" className="overflow-visible fill-none stroke-black stroke-[1.5] stroke-linecap-round">
-            {/* Background static line */}
-            <path d="M 0,24 Q 35,24 70,24 T 140,24" className="opacity-[0.08]" />
-            
-            {/* Animating waveforms */}
-            <motion.path 
-              d="M 0,24 Q 35,24 70,24 T 140,24"
-              animate={{
-                d: [
-                  "M 0,24 Q 35,24 70,24 T 140,24",
-                  "M 0,24 Q 35,4 70,24 T 140,24",
-                  "M 0,24 Q 35,44 70,24 T 140,24",
-                  "M 0,24 Q 35,24 70,24 T 140,24"
-                ]
+          {[
+            { id: 0, delay: 0.45, maxH: "35%" },
+            { id: 1, delay: 0.30, maxH: "65%" },
+            { id: 2, delay: 0.15, maxH: "85%" },
+            { id: 3, delay: 0.00, maxH: "100%" },
+            { id: 4, delay: 0.15, maxH: "85%" },
+            { id: 5, delay: 0.30, maxH: "65%" },
+            { id: 6, delay: 0.45, maxH: "35%" },
+          ].map((bar) => (
+            <motion.div
+              key={bar.id}
+              className="w-1 bg-black/80 rounded-full origin-center"
+              animate={{ height: ["20%", bar.maxH, "20%"] }}
+              transition={{
+                duration: 1.8,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: bar.delay
               }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-              className="opacity-70"
             />
-            <motion.path 
-              d="M 0,24 Q 35,24 70,24 T 140,24"
-              animate={{
-                d: [
-                  "M 0,24 Q 35,24 70,24 T 140,24",
-                  "M 0,24 Q 35,44 70,24 T 140,24",
-                  "M 0,24 Q 35,4 70,24 T 140,24",
-                  "M 0,24 Q 35,24 70,24 T 140,24"
-                ]
-              }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-              className="opacity-40"
-            />
-            <motion.path 
-              d="M 0,24 Q 35,24 70,24 T 140,24"
-              animate={{
-                d: [
-                  "M 0,24 Q 35,24 70,24 T 140,24",
-                  "M 0,24 Q 35,14 70,24 T 140,24",
-                  "M 0,24 Q 35,34 70,24 T 140,24",
-                  "M 0,24 Q 35,24 70,24 T 140,24"
-                ]
-              }}
-              transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-              className="opacity-30"
-            />
-          </svg>
+          ))}
         </motion.div>
 
         {/* Animated Loading Text */}
