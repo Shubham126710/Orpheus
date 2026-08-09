@@ -50,7 +50,6 @@ interface PlayerState {
   setIsUsingNative: (val: boolean) => void;
   analyser: AnalyserNode | null;
   setAnalyser: (analyser: AnalyserNode) => void;
-  fetchStreamUrl: (videoId: string) => Promise<void>;
 }
 
 import { useLibraryStore } from './useLibraryStore';
@@ -83,25 +82,36 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     // Add to recently played automatically
     useLibraryStore.getState().addToRecent(track);
     
-    // Reset native flag on new track
+    // Reset native flag on new track to ensure iframe remounts instantly
     set({ isUsingNative: false });
     
     // Synchronously trigger YouTube player for strict mobile Safari autoplay policies
     const { ytPlayer, silentAudio } = get();
     if (ytPlayer && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById(track.id);
-      if (ytPlayer.playVideo) ytPlayer.playVideo();
     }
     
-    // Play silent audio immediately to keep the audio session alive
+    // CRITICAL iOS FIX: The src MUST be set and play() MUST be called synchronously inside the user gesture event.
+    // If we swap the src asynchronously later, iOS revokes the "user-gesture blessing" and kills background playback.
     if (silentAudio) {
-      silentAudio.loop = true;
-      silentAudio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjEyLjEwMAAAAAAAAAAAAAAA//OEXAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
-      silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
+      silentAudio.loop = false;
+      // We point it directly to our Vercel streaming proxy. The browser will wait while Vercel extracts and pipes the stream.
+      silentAudio.src = `/api/stream?id=${track.id}`;
+      
+      const onPlaying = () => {
+        set({ isUsingNative: true });
+        silentAudio.removeEventListener('playing', onPlaying);
+      };
+      silentAudio.addEventListener('playing', onPlaying);
+      
+      silentAudio.addEventListener('error', () => {
+        silentAudio.removeEventListener('playing', onPlaying);
+        console.error("Native audio failed to load proxy stream. Gracefully degrading to YouTube iframe.");
+      }, { once: true });
+
+      // Synchronously call play!
+      silentAudio.play().catch(e => console.log("Initial proxy stream play blocked:", e));
     }
-    
-    // Fetch real stream for background
-    get().fetchStreamUrl(track.id);
     
     set((state) => {
       let newQueue = state.queue;
@@ -125,92 +135,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
   },
 
-  fetchStreamUrl: async (videoId: string) => {
-    try {
-      const { silentAudio } = get();
-      if (!silentAudio) return;
 
-      // 4-Stage Failover Pipeline
-      const failovers = [
-        async () => {
-          // Verify proxy works
-          const res = await fetch(`/api/stream?id=${videoId}`, { headers: { 'Range': 'bytes=0-0' } });
-          if (!res.ok) throw new Error("Vercel API Proxy failed");
-          return `/api/stream?id=${videoId}`;
-        },
-        async () => {
-          const res = await fetch(`https://pipedapi.kavin.rocks/streams/${videoId}`);
-          if (!res.ok) throw new Error("Piped 1 failed");
-          const data = await res.json();
-          const audio = data.audioStreams.find((s: any) => s.mimeType.startsWith('audio/mp4') || s.mimeType.startsWith('audio/webm'));
-          if (!audio) throw new Error("No audio from Piped 1");
-          return audio.url;
-        },
-        async () => {
-          const res = await fetch(`https://pipedapi.syncpundit.io/streams/${videoId}`);
-          if (!res.ok) throw new Error("Piped 2 failed");
-          const data = await res.json();
-          const audio = data.audioStreams.find((s: any) => s.mimeType.startsWith('audio/mp4') || s.mimeType.startsWith('audio/webm'));
-          if (!audio) throw new Error("No audio from Piped 2");
-          return audio.url;
-        },
-        async () => {
-          const res = await fetch(`https://api.piped.projectsegfau.lt/streams/${videoId}`);
-          if (!res.ok) throw new Error("Piped 3 failed");
-          const data = await res.json();
-          const audio = data.audioStreams.find((s: any) => s.mimeType.startsWith('audio/mp4') || s.mimeType.startsWith('audio/webm'));
-          if (!audio) throw new Error("No audio from Piped 3");
-          return audio.url;
-        }
-      ];
-
-      // Try to get a URL using the failovers
-      let streamUrl = null;
-      for (const failover of failovers) {
-        try {
-          streamUrl = await failover();
-          if (streamUrl) break; // Found a working URL!
-        } catch (err) {
-          console.warn("Failover skipped due to error:", err);
-        }
-      }
-
-      if (streamUrl) {
-        silentAudio.loop = false;
-        silentAudio.src = streamUrl;
-        
-        // CRITICAL: Do NOT unmount or pause the YouTube iframe immediately!
-        // iOS PWA standalone mode will instantly suspend the background process if there is a gap in audio output.
-        // We must wait for the native audio to fully buffer and actually start playing before handing off.
-        const onPlaying = () => {
-          set({ isUsingNative: true });
-          silentAudio.removeEventListener('playing', onPlaying);
-        };
-        silentAudio.addEventListener('playing', onPlaying);
-        
-        // Also handle errors so we don't get stuck
-        silentAudio.addEventListener('error', () => {
-          silentAudio.removeEventListener('playing', onPlaying);
-          console.error("Native audio failed to load (IP block or 403 Forbidden). Gracefully degrading to YouTube iframe only.");
-        }, { once: true });
-
-        // Synchronize time with YouTube before playing
-        const { ytPlayer } = get();
-        if (ytPlayer && ytPlayer.getCurrentTime) {
-          silentAudio.currentTime = ytPlayer.getCurrentTime();
-        }
-
-        silentAudio.play().catch(e => {
-          console.error("Native audio play blocked:", e);
-          silentAudio.removeEventListener('playing', onPlaying);
-        });
-      } else {
-        console.warn("ALL failovers failed. Gracefully degrading to pure YouTube iframe playback.");
-      }
-    } catch (e) {
-      console.error("Failed to fetch direct stream for iOS:", e);
-    }
-  },
   
   addToQueue: (track) => set((state) => ({ queue: [...state.queue, track] })),
   

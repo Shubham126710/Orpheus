@@ -59,10 +59,52 @@ export async function GET(request: Request) {
       status: audioResponse.status,
       headers,
     });
+    } catch (primaryError) {
+      console.warn("Primary yt-dlp extraction failed. Triggering server-side failovers...", primaryError);
+      
+      const pipedInstances = [
+        `https://pipedapi.kavin.rocks/streams/${videoId}`,
+        `https://pipedapi.syncpundit.io/streams/${videoId}`,
+        `https://api.piped.projectsegfau.lt/streams/${videoId}`
+      ];
+
+      for (const instance of pipedInstances) {
+        try {
+          const res = await fetch(instance);
+          if (!res.ok) continue;
+          const data = await res.json();
+          const audio = data.audioStreams.find((s: any) => s.mimeType.startsWith('audio/mp4') || s.mimeType.startsWith('audio/webm'));
+          if (audio && audio.url) {
+            console.log(`Successfully failed over to Piped instance: ${instance}`);
+            
+            const audioResponse = await fetch(audio.url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Range': request.headers.get('range') || 'bytes=0-',
+              },
+            });
+
+            const headers = new Headers();
+            headers.set('Access-Control-Allow-Origin', '*');
+            headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/webm');
+            if (audioResponse.status === 206) {
+              headers.set('Content-Range', audioResponse.headers.get('Content-Range') || '');
+              headers.set('Accept-Ranges', 'bytes');
+              headers.set('Content-Length', audioResponse.headers.get('Content-Length') || '');
+            }
+            return new Response(audioResponse.body, { status: audioResponse.status, headers });
+          }
+        } catch (failoverError) {
+          console.warn(`Failover instance ${instance} failed. Trying next...`);
+        }
+      }
+
+      throw new Error("All stream extraction failovers failed.");
+    }
   } catch (error: any) {
     console.error("Stream extraction error:", error);
     return NextResponse.json(
-      { error: 'Failed to extract audio stream', details: error.message },
+      { error: "Failed to extract stream URL" },
       { status: 500 }
     );
   }
