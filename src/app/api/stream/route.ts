@@ -2,6 +2,9 @@ import { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import youtubedl from 'youtube-dl-exec';
 
+// Global cache to store extracted YouTube URLs so we don't re-run yt-dlp on every Range request chunk!
+const urlCache = new Map<string, { url: string, expires: number }>();
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const videoId = searchParams.get('id');
@@ -11,47 +14,67 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Use youtube-dl-exec (which downloads and runs the latest yt-dlp standalone binary)
-    // This perfectly bypasses Node 20+ undici HTTP bugs AND YouTube's cipher changes!
-    const output: any = await youtubedl(`https://www.youtube.com/watch?v=${videoId}`, {
-      dumpSingleJson: true,
-      noWarnings: true,
-      noCheckCertificates: true,
-      preferFreeFormats: true,
-      youtubeSkipDashManifest: true,
-      // CRITICAL FOR iOS: We MUST force m4a (aac). iOS WebKit cannot decode WebM/Opus.
-      format: 'bestaudio[ext=m4a]/bestaudio[vcodec=none]/best',
-      referer: 'https://www.youtube.com/'
-    });
+    let streamUrl = '';
+    const now = Date.now();
+    
+    // Check if we already extracted this URL recently (within the last 1 hour)
+    if (urlCache.has(videoId) && urlCache.get(videoId)!.expires > now) {
+      streamUrl = urlCache.get(videoId)!.url;
+      console.log(`Using cached stream URL for ${videoId}`);
+    } else {
+      console.log(`Extracting fresh stream URL for ${videoId}...`);
+      // Use youtube-dl-exec (which downloads and runs the latest yt-dlp standalone binary)
+      const output: any = await youtubedl(`https://www.youtube.com/watch?v=${videoId}`, {
+        dumpSingleJson: true,
+        noWarnings: true,
+        noCheckCertificates: true,
+        preferFreeFormats: true,
+        youtubeSkipDashManifest: true,
+        // CRITICAL FOR iOS: We MUST force m4a (aac). iOS WebKit cannot decode WebM/Opus.
+        format: 'bestaudio[ext=m4a]/bestaudio[vcodec=none]/best',
+        referer: 'https://www.youtube.com/'
+      });
 
-    // Extract the best audio-only format
-    const formats = output.formats.filter((f: any) => f.acodec !== 'none' && f.vcodec === 'none');
-    const bestAudio = formats.sort((a: any, b: any) => (b.abr || 0) - (a.abr || 0))[0];
+      const formats = output.formats.filter((f: any) => f.acodec !== 'none' && f.vcodec === 'none');
+      const bestAudio = formats.sort((a: any, b: any) => (b.abr || 0) - (a.abr || 0))[0];
 
-    if (!bestAudio || !bestAudio.url) {
-      throw new Error('No valid audio stream found');
+      if (!bestAudio || !bestAudio.url) {
+        throw new Error('No valid audio stream found');
+      }
+      
+      streamUrl = bestAudio.url;
+      // YouTube URLs are typically valid for 6 hours. Cache it for 1 hour to be safe.
+      urlCache.set(videoId, { url: streamUrl, expires: now + 3600 * 1000 });
     }
 
     // Proxy the audio stream through our Vercel server to bypass IP-binding restrictions!
-    // Since yt-dlp gets the URL using Vercel's IP, we MUST download it from Vercel's IP.
-    const audioResponse = await fetch(bestAudio.url, {
+    const audioResponse = await fetch(streamUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Range': request.headers.get('range') || 'bytes=0-',
       },
     });
 
-    // Pipe the audio stream directly to the client
     const headers = new Headers();
     headers.set('Access-Control-Allow-Origin', '*');
     headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Range');
     headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mp4');
     
-    // We explicitly DO NOT set Accept-Ranges: bytes.
-    // This forces iOS Safari to download the entire audio file in a single connection.
+    // CRITICAL FOR iOS: We MUST support Range requests and return 206 Partial Content!
+    // iOS Safari strictly refuses to play media files that respond with a flat 200 OK.
+    if (audioResponse.status === 206) {
+      headers.set('Content-Range', audioResponse.headers.get('Content-Range') || '');
+      headers.set('Accept-Ranges', 'bytes');
+      headers.set('Content-Length', audioResponse.headers.get('Content-Length') || '');
+    } else {
+      // If YouTube returned 200, we must pass the Content-Length so iOS knows the file size
+      headers.set('Content-Length', audioResponse.headers.get('Content-Length') || '');
+      headers.set('Accept-Ranges', 'bytes');
+    }
 
     return new Response(audioResponse.body, {
-      status: 200,
+      status: audioResponse.status,
       headers,
     });
   } catch (error: any) {
