@@ -45,6 +45,9 @@ interface PlayerState {
   setYtPlayer: (player: any) => void;
   silentAudio: HTMLAudioElement | null;
   setSilentAudio: (audio: HTMLAudioElement) => void;
+  analyser: AnalyserNode | null;
+  setAnalyser: (analyser: AnalyserNode) => void;
+  fetchStreamUrl: (videoId: string) => Promise<void>;
 }
 
 import { useLibraryStore } from './useLibraryStore';
@@ -66,6 +69,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setYtPlayer: (player) => set({ ytPlayer: player }),
   silentAudio: null,
   setSilentAudio: (audio) => set({ silentAudio: audio }),
+  
+  analyser: null,
+  setAnalyser: (analyser) => set({ analyser }),
 
   playTrack: (track, contextQueue) => {
     // Add to recently played automatically
@@ -77,9 +83,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       ytPlayer.loadVideoById(track.id);
       if (ytPlayer.playVideo) ytPlayer.playVideo();
     }
+    
+    // Play silent audio immediately to keep the audio session alive
     if (silentAudio) {
+      silentAudio.loop = true;
+      silentAudio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjEyLjEwMAAAAAAAAAAAAAAA//OEXAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
       silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
     }
+    
+    // Fetch real stream for background
+    get().fetchStreamUrl(track.id);
     
     set((state) => {
       let newQueue = state.queue;
@@ -101,6 +114,28 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         isExpanded: true 
       };
     });
+  },
+
+  fetchStreamUrl: async (videoId: string) => {
+    try {
+      const res = await fetch(`/api/stream?id=${videoId}`);
+      if (res.ok) {
+        const data = await res.json();
+        const { silentAudio } = get();
+        if (silentAudio && data.url) {
+          silentAudio.loop = false;
+          silentAudio.src = data.url;
+          silentAudio.play().catch(e => console.error("Native audio play blocked:", e));
+          
+          const { ytPlayer } = get();
+          if (ytPlayer && ytPlayer.mute) {
+            ytPlayer.mute();
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch direct stream for iOS:", e);
+    }
   },
   
   addToQueue: (track) => set((state) => ({ queue: [...state.queue, track] })),

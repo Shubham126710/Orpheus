@@ -37,6 +37,7 @@ export default function FullScreenPlayer() {
   
   const VisualizerLine = ({ flip = false }: { flip?: boolean }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { analyser } = usePlayerStore();
 
     useEffect(() => {
       let animationFrameId: number;
@@ -54,6 +55,8 @@ export default function FullScreenPlayer() {
       const numPoints = 100;
       const currentPoints = new Float32Array(numPoints).fill(0);
       let time = 0;
+      
+      const dataArray = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
 
       const renderFrame = () => {
         ctx.clearRect(0, 0, rect.width, rect.height);
@@ -64,51 +67,82 @@ export default function FullScreenPlayer() {
 
         time += 0.05;
 
-        for (let i = 0; i < numPoints; i++) {
-          let targetY = 0;
+        if (analyser && dataArray && isPlaying) {
+          analyser.getByteFrequencyData(dataArray);
+          // Calculate an overall energy value for beating
+          let energy = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+             energy += dataArray[i];
+          }
+          const averageEnergy = energy / dataArray.length;
+          const activeBeat = 1.0 + (averageEnergy / 255) * 1.5;
 
-          if (isPlaying) {
-            // Simulated waveform using math instead of Web Audio API
-            const normalized = i / numPoints;
+          for (let i = 0; i < numPoints; i++) {
+            // Map the 100 visual points to the frequency bins (use lower 70% of frequencies)
+            const binIndex = Math.floor((i / numPoints) * dataArray.length * 0.7);
+            const freqVal = dataArray[binIndex] / 255.0; // 0 to 1
             
-            // Use irrational multipliers to ensure the pattern takes a very long time to repeat
-            const w1 = Math.sin(normalized * 15.3 + time * 1.7) * 0.4;
-            const w2 = Math.sin(normalized * 27.8 - time * 2.3) * 0.3;
-            const w3 = Math.sin(normalized * 7.1 + time * 0.8) * 0.2;
-            const w4 = Math.sin(normalized * 43.5 - time * 3.1) * 0.15;
-            const w5 = Math.sin(normalized * 3.14 + time * 1.1) * 0.3;
-            
-            // Smooth, continuous "beat" spikes using exponentiation instead of sudden jumps
-            // Math.pow(Math.sin(x), even_number) creates smooth, regular peaks
-            // We mix a few frequencies together for a natural rhythm
-            const b1 = Math.pow(Math.sin(time * 0.8), 8) * 0.8;
-            const b2 = Math.pow(Math.sin(time * 1.4 + 1), 6) * 0.6;
-            const activeBeat = 1.0 + b1 + b2;
+            // Add some base fizz to make it look alive even in quiet parts
+            const fizz = Math.sin(i * 100 + time * 10) * 0.02;
+            const v = (freqVal + fizz) * activeBeat;
 
-            // High frequency "fizz" for realism
-            const fizz = Math.sin(normalized * 100 + time * 10) * 0.05;
-            
-            const v = (w1 + w2 + w3 + w4 + w5 + fizz) * activeBeat;
-
-            // Calculate distance from center (0 at center, 1 at edges)
+            // Window function
             const dist = Math.abs(i - numPoints/2) / (numPoints/2);
-            
-            // Apply a window function so the waveform is concentrated in the center and flat at the edges.
             const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
             
-            targetY = v * (rect.height / 2) * windowMultiplier * 1.5; 
-          }
+            let targetY = v * (rect.height / 2) * windowMultiplier * 1.5;
+            
+            // Mirror logic since frequency data doesn't naturally have negative values
+            if (i % 2 === 0) targetY = -targetY;
 
-          // Smooth interpolation for snappy but fluid movement
-          currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
-          
-          const x = (i / (numPoints - 1)) * rect.width;
-          const y = centerY + currentPoints[i];
-          
-          if (i === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
+            currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
+            
+            const x = (i / (numPoints - 1)) * rect.width;
+            const y = centerY + currentPoints[i];
+            
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+        } else {
+          // Fallback Math visualization
+          for (let i = 0; i < numPoints; i++) {
+            let targetY = 0;
+
+            if (isPlaying) {
+              const normalized = i / numPoints;
+              const w1 = Math.sin(normalized * 15.3 + time * 1.7) * 0.4;
+              const w2 = Math.sin(normalized * 27.8 - time * 2.3) * 0.3;
+              const w3 = Math.sin(normalized * 7.1 + time * 0.8) * 0.2;
+              const w4 = Math.sin(normalized * 43.5 - time * 3.1) * 0.15;
+              const w5 = Math.sin(normalized * 3.14 + time * 1.1) * 0.3;
+              
+              const b1 = Math.pow(Math.sin(time * 0.8), 8) * 0.8;
+              const b2 = Math.pow(Math.sin(time * 1.4 + 1), 6) * 0.6;
+              const activeBeat = 1.0 + b1 + b2;
+
+              const fizz = Math.sin(normalized * 100 + time * 10) * 0.05;
+              
+              const v = (w1 + w2 + w3 + w4 + w5 + fizz) * activeBeat;
+
+              const dist = Math.abs(i - numPoints/2) / (numPoints/2);
+              const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
+              
+              targetY = v * (rect.height / 2) * windowMultiplier * 1.5; 
+            }
+
+            currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
+            
+            const x = (i / (numPoints - 1)) * rect.width;
+            const y = centerY + currentPoints[i];
+            
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
           }
         }
 
@@ -128,7 +162,7 @@ export default function FullScreenPlayer() {
       renderFrame();
 
       return () => cancelAnimationFrame(animationFrameId);
-    }, [isPlaying, isLightMode]);
+    }, [isPlaying, isLightMode, analyser]);
 
     return (
       <div className={`w-28 md:w-36 h-16 flex items-center justify-center ${flip ? 'scale-x-[-1]' : ''}`}>

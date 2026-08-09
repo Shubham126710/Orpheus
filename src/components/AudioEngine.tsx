@@ -88,7 +88,32 @@ export default function AudioEngine() {
   // Expose silent audio to global store on mount
   useEffect(() => {
     if (silentAudioRef.current) {
-      usePlayerStore.getState().setSilentAudio(silentAudioRef.current);
+      const audioEl = silentAudioRef.current;
+      audioEl.addEventListener('ended', () => {
+        if (!audioEl.src.startsWith('data:')) {
+          usePlayerStore.getState().playNext();
+        }
+      });
+      usePlayerStore.getState().setSilentAudio(audioEl);
+      
+      try {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        const source = audioCtx.createMediaElementSource(audioEl);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        usePlayerStore.getState().setAnalyser(analyser);
+        
+        // Add a play listener to resume context
+        audioEl.addEventListener('play', () => {
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+        });
+      } catch (e) {
+        console.warn("Web Audio API setup failed:", e);
+      }
     }
   }, []);
 
@@ -201,10 +226,11 @@ export default function AudioEngine() {
         onStateChange={handleStateChange}
         onError={handleError}
       />
-      {/* Silent Audio Hack to keep Safari awake in the background */}
+      {/* Silent Audio Hack to keep Safari awake in the background, also plays real track on iOS */}
       <audio 
         ref={silentAudioRef}
-        loop 
+        crossOrigin="anonymous"
+        loop
         playsInline
         src="data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjEyLjEwMAAAAAAAAAAAAAAA//OEXAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" 
       />
