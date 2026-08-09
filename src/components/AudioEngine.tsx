@@ -8,6 +8,7 @@ export default function AudioEngine() {
   const { currentTrack, isPlaying, setIsPlaying, setProgress, setCurrentTime, setDuration, seekTo, setSeekTo, playNext, isUsingNative } = usePlayerStore();
   
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
+  const [isIOS, setIsIOS] = useState(false);
   const isScrubbing = useRef(false);
 
   // Register PWA Service Worker
