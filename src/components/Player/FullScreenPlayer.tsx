@@ -133,10 +133,11 @@ export default function FullScreenPlayer() {
               ctx.lineTo(x, y);
             }
           }
-        } else {
-          // Fallback Math visualization
-          for (let i = 0; i < numPoints; i++) {
-            let targetY = 0;
+        }
+      } else {
+        // Fallback Math visualization
+        for (let i = 0; i < numPoints; i++) {
+          let targetY = 0;
 
             if (isPlaying) {
               const normalized = i / numPoints;
