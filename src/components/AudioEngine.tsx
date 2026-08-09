@@ -62,9 +62,6 @@ export default function AudioEngine() {
         event.target.playVideo();
       } else {
         setIsPlaying(false);
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.playbackState = 'paused';
-        }
         // Stop time polling
         if (timeUpdateInterval.current) {
           clearInterval(timeUpdateInterval.current);
@@ -118,14 +115,8 @@ export default function AudioEngine() {
   // Media Session Handlers
   useEffect(() => {
     if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => {
-        if (player) player.playVideo();
-        setIsPlaying(true);
-      });
-      navigator.mediaSession.setActionHandler('pause', () => {
-        if (player) player.pauseVideo();
-        setIsPlaying(false);
-      });
+      // Let iOS natively handle Play/Pause for the underlying video tag so the Lock Screen workaround functions.
+      // We only intercept next/previous tracks.
       navigator.mediaSession.setActionHandler('previoustrack', () => {
         usePlayerStore.getState().playPrevious();
       });
