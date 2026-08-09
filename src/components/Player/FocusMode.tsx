@@ -78,13 +78,33 @@ export default function FocusMode({ isOpen, onClose }: FocusModeProps) {
 
   if (!isOpen) return null;
 
-  // Decoupled vivid color palettes
+  // Complex decoupled organic liquid color palettes
   const palettes = {
-    focus: { orb1: '#4f46e5', orb2: '#8b5cf6', orb3: '#c084fc' }, // Indigo, Violet, Lavender
-    break: { orb1: '#fb7185', orb2: '#f43f5e', orb3: '#fb923c' }, // Rose, Pink, Orange
+    focus: { 
+      l1: '#2e1065', // Massive slow deep violet
+      l2: '#9333ea', // Core fluid purple/magenta
+      l3: '#0284c7', // Cyan/blue accent
+      l4: '#c4b5fd'  // Lavender highlight
+    },
+    break: { 
+      l1: '#701a75', // Massive warm purple
+      l2: '#e11d48', // Core magenta/pink
+      l3: '#ea580c', // Orange accent
+      l4: '#fca5a5'  // Coral highlight
+    },
   };
   
   const currentPalette = palettes[mode];
+
+  // Common organic morphing animation properties
+  const blobAnimationProps = {
+    borderRadius: [
+      "40% 60% 70% 30% / 40% 50% 60% 50%",
+      "60% 40% 30% 70% / 60% 30% 70% 40%",
+      "50% 50% 60% 40% / 30% 60% 40% 60%",
+      "40% 60% 70% 30% / 40% 50% 60% 50%"
+    ],
+  };
 
   return (
     <AnimatePresence>
@@ -95,34 +115,62 @@ export default function FocusMode({ isOpen, onClose }: FocusModeProps) {
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="fixed inset-0 z-[300] bg-[#050508] text-white flex flex-col items-center justify-between overflow-hidden h-[100dvh]"
       >
-        {/* Liquid Ambient Background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-60 transition-opacity duration-1000">
+        {/* Organic Liquid Ambient Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-1000">
+          
+          {/* Layer 1: Massive Deep Violet/Purple Base - Very Slow */}
           <motion.div 
             animate={shouldReduceMotion ? {} : {
-              x: ['0%', '5%', '-5%', '0%'],
-              y: ['0%', '-5%', '5%', '0%'],
+              ...blobAnimationProps,
+              rotate: [0, 90, 180, 270, 360],
+              opacity: [0.6, 0.8, 0.6],
             }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[-10%] left-[-10%] w-[65%] h-[65%] rounded-full blur-[140px] transition-colors duration-[2000ms]"
-            style={{ backgroundColor: currentPalette.orb1 }}
+            transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+            className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] blur-[120px] md:blur-[160px] transition-colors duration-[3000ms]"
+            style={{ backgroundColor: currentPalette.l1 }}
           />
+          
+          {/* Layer 2: Core Purple/Magenta Fluid - Medium Slow */}
           <motion.div 
             animate={shouldReduceMotion ? {} : {
-              x: ['0%', '-8%', '8%', '0%'],
-              y: ['0%', '8%', '-8%', '0%'],
+              ...blobAnimationProps,
+              rotate: [360, 270, 180, 90, 0],
+              x: ['-5%', '10%', '-5%'],
+              y: ['5%', '-10%', '5%'],
+              opacity: [0.5, 0.75, 0.5],
             }}
-            transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="absolute bottom-[-15%] right-[-10%] w-[55%] h-[55%] rounded-full blur-[140px] transition-colors duration-[2000ms]"
-            style={{ backgroundColor: currentPalette.orb2 }}
+            transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[10%] right-[-10%] w-[70%] h-[80%] blur-[100px] md:blur-[140px] transition-colors duration-[3000ms]"
+            style={{ backgroundColor: currentPalette.l2 }}
           />
+          
+          {/* Layer 3: Cyan/Orange Accent - Drifting across */}
           <motion.div 
             animate={shouldReduceMotion ? {} : {
-              x: ['0%', '10%', '-10%', '0%'],
-              y: ['0%', '-10%', '10%', '0%'],
+              ...blobAnimationProps,
+              rotate: [0, -180, -360],
+              x: ['10%', '-15%', '10%'],
+              y: ['10%', '15%', '10%'],
+              opacity: [0.3, 0.5, 0.3],
             }}
-            transition={{ duration: 35, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            className="absolute top-[25%] left-[25%] w-[45%] h-[45%] rounded-full blur-[140px] transition-colors duration-[2000ms] opacity-70"
-            style={{ backgroundColor: currentPalette.orb3 }}
+            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            className="absolute bottom-[-15%] left-[-10%] w-[60%] h-[60%] blur-[90px] md:blur-[120px] transition-colors duration-[3000ms]"
+            style={{ backgroundColor: currentPalette.l3 }}
+          />
+
+          {/* Layer 4: Lavender/Coral Highlight - Breathing in and out of periphery */}
+          <motion.div 
+            animate={shouldReduceMotion ? {} : {
+              ...blobAnimationProps,
+              rotate: [0, 180, 360],
+              x: ['-10%', '5%', '-10%'],
+              y: ['-5%', '10%', '-5%'],
+              opacity: [0.15, 0.4, 0.15],
+              scale: [0.9, 1.1, 0.9],
+            }}
+            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+            className="absolute top-[-5%] left-[20%] w-[45%] h-[45%] blur-[80px] md:blur-[100px] transition-colors duration-[3000ms]"
+            style={{ backgroundColor: currentPalette.l4 }}
           />
         </div>
 
