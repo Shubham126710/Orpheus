@@ -133,13 +133,36 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         if (silentAudio && data.url) {
           silentAudio.loop = false;
           silentAudio.src = data.url;
-          silentAudio.play().catch(e => console.error("Native audio play blocked:", e));
           
-          set({ isUsingNative: true });
+          // CRITICAL: Do NOT unmount or pause the YouTube iframe immediately!
+          // iOS PWA standalone mode will instantly suspend the background process if there is a gap in audio output.
+          // We must wait for the native audio to fully buffer and actually start playing before handing off.
+          const onPlaying = () => {
+            set({ isUsingNative: true });
+            const { ytPlayer } = get();
+            if (ytPlayer && ytPlayer.pauseVideo) {
+              ytPlayer.pauseVideo();
+            }
+            silentAudio.removeEventListener('playing', onPlaying);
+          };
+          silentAudio.addEventListener('playing', onPlaying);
+          
+          // Also handle errors so we don't get stuck
+          silentAudio.addEventListener('error', () => {
+            silentAudio.removeEventListener('playing', onPlaying);
+            console.error("Native audio failed to load.");
+          }, { once: true });
+
+          // Synchronize time with YouTube before playing
           const { ytPlayer } = get();
-          if (ytPlayer && ytPlayer.pauseVideo) {
-            ytPlayer.pauseVideo();
+          if (ytPlayer && ytPlayer.getCurrentTime) {
+            silentAudio.currentTime = ytPlayer.getCurrentTime();
           }
+
+          silentAudio.play().catch(e => {
+            console.error("Native audio play blocked:", e);
+            silentAudio.removeEventListener('playing', onPlaying);
+          });
         }
       }
     } catch (e) {
