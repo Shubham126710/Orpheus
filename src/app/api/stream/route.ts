@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const output: any = await youtubedl(`https://www.youtube.com/watch?v=${videoId}`, {
       dumpSingleJson: true,
       noWarnings: true,
-      noCheckCertificate: true,
+      noCheckCertificates: true,
       preferFreeFormats: true,
       youtubeSkipDashManifest: true,
       // CRITICAL FOR iOS: We MUST force m4a (aac). iOS WebKit cannot decode WebM/Opus.
