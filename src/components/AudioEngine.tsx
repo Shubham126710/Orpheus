@@ -5,7 +5,7 @@ import { usePlayerStore } from "@/store/usePlayerStore";
 import YouTube, { YouTubePlayer } from "react-youtube";
 
 export default function AudioEngine() {
-  const { currentTrack, isPlaying, setIsPlaying, setProgress, setCurrentTime, setDuration, seekTo, setSeekTo, playNext, isUsingNative } = usePlayerStore();
+  const { currentTrack, isPlaying, setIsPlaying, setProgress, setCurrentTime, setDuration, seekTo, setSeekTo, playNext, activeProvider } = usePlayerStore();
   
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
   const [isIOS, setIsIOS] = useState(false);
@@ -31,8 +31,8 @@ export default function AudioEngine() {
     const state = event.data;
     const storeState = usePlayerStore.getState();
     
-    // Ignore YouTube state changes if we are using native audio
-    if (storeState.isUsingNative && state !== 1) {
+    // Ignore YouTube state changes if we are using the direct audio provider
+    if (storeState.activeProvider === 'direct' && state !== 1) {
        return;
     }
     
@@ -116,7 +116,7 @@ export default function AudioEngine() {
       const state = usePlayerStore.getState();
       if (!state.isPlaying || isScrubbing.current) return;
       
-      if (state.isUsingNative && state.silentAudio) {
+      if (state.activeProvider === 'direct' && state.silentAudio) {
          const time = state.silentAudio.currentTime;
          const dur = state.silentAudio.duration;
          if (dur > 0) {
@@ -142,13 +142,13 @@ export default function AudioEngine() {
       isScrubbing.current = true;
       const state = usePlayerStore.getState();
       
-      if (state.isUsingNative && state.silentAudio) {
+      if (state.activeProvider === 'direct' && state.silentAudio) {
         state.silentAudio.currentTime = seekTo;
         setCurrentTime(seekTo);
         if (state.silentAudio.duration > 0) {
            setProgress((seekTo / state.silentAudio.duration) * 100);
         }
-      } else {
+      } else if (state.activeProvider === 'youtube' && player) {
         player.seekTo(seekTo, true);
         setCurrentTime(seekTo);
         if (player.getDuration() > 0) {
@@ -231,7 +231,7 @@ export default function AudioEngine() {
         We place it fixed at the top left, tiny, and almost completely transparent.
         This fools Safari into thinking it's a visible element on screen, allowing synchronous playback.
       */}
-      {!isUsingNative && !isIOS && (
+      {activeProvider === 'youtube' && (
         <YouTube
           videoId="dQw4w9WgXcQ" // Dummy ID. We strictly control playback via the global ytPlayer API synchronously.
           opts={{

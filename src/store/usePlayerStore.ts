@@ -48,8 +48,8 @@ interface PlayerState {
   setYtPlayer: (player: any) => void;
   silentAudio: HTMLAudioElement | null;
   setSilentAudio: (audio: HTMLAudioElement) => void;
-  isUsingNative: boolean;
-  setIsUsingNative: (val: boolean) => void;
+  activeProvider: 'youtube' | 'direct';
+  setActiveProvider: (provider: 'youtube' | 'direct') => void;
   analyser: AnalyserNode | null;
   setAnalyser: (analyser: AnalyserNode) => void;
 }
@@ -76,8 +76,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   silentAudio: null,
   setSilentAudio: (audio) => set({ silentAudio: audio }),
   
-  isUsingNative: false,
-  setIsUsingNative: (val) => set({ isUsingNative: val }),
+  activeProvider: 'youtube',
+  setActiveProvider: (val) => set({ activeProvider: val }),
   
   analyser: null,
   setAnalyser: (analyser) => set({ analyser }),
@@ -86,35 +86,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     // Add to recently played automatically
     useLibraryStore.getState().addToRecent(track);
     
-    // Reset native flag on new track to ensure iframe remounts instantly
-    set({ isUsingNative: false });
+    // Default to YouTube provider for all currently resolved tracks
+    set({ activeProvider: 'youtube' });
     
     // Synchronously trigger YouTube player for strict mobile Safari autoplay policies
-    const { ytPlayer, silentAudio, currentTrack, history } = get();
+    const { ytPlayer, currentTrack, history } = get();
     if (ytPlayer && ytPlayer.loadVideoById) {
       ytPlayer.loadVideoById(track.id);
-    }
-    
-    // CRITICAL iOS FIX: The src MUST be set and play() MUST be called synchronously inside the user gesture event.
-    // If we swap the src asynchronously later, iOS revokes the "user-gesture blessing" and kills background playback.
-    if (silentAudio) {
-      silentAudio.loop = false;
-      // We point it directly to our Vercel streaming proxy. The browser will wait while Vercel extracts and pipes the stream.
-      silentAudio.src = `/api/stream?id=${track.id}`;
-      
-      const onPlaying = () => {
-        set({ isUsingNative: true });
-        silentAudio.removeEventListener('playing', onPlaying);
-      };
-      silentAudio.addEventListener('playing', onPlaying);
-      
-      silentAudio.addEventListener('error', () => {
-        silentAudio.removeEventListener('playing', onPlaying);
-        console.error("Native audio failed to load proxy stream. Gracefully degrading to YouTube iframe.");
-      }, { once: true });
-
-      // Synchronously call play!
-      silentAudio.play().catch(e => console.log("Initial proxy stream play blocked:", e));
     }
     
     set((state) => {
@@ -173,17 +151,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     if (queue.length > 0) {
       const nextTrack = queue[0];
-      set({ isUsingNative: false });
+      set({ activeProvider: 'youtube' });
       
       if (ytPlayer && ytPlayer.loadVideoById) {
         ytPlayer.loadVideoById(nextTrack.id);
         if (ytPlayer.playVideo) ytPlayer.playVideo();
-      }
-      
-      if (silentAudio) {
-        silentAudio.loop = false;
-        silentAudio.src = `/api/stream?id=${nextTrack.id}`;
-        silentAudio.play().catch(() => {});
       }
       
       set({ 
@@ -233,17 +205,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const prevTrack = history[history.length - 1];
       const newHistory = history.slice(0, -1);
       
-      set({ isUsingNative: false });
+      set({ activeProvider: 'youtube' });
       
       if (ytPlayer && ytPlayer.loadVideoById) {
         ytPlayer.loadVideoById(prevTrack.id);
         if (ytPlayer.playVideo) ytPlayer.playVideo();
-      }
-      
-      if (silentAudio) {
-        silentAudio.loop = false;
-        silentAudio.src = `/api/stream?id=${prevTrack.id}`;
-        silentAudio.play().catch(() => {});
       }
       
       set((state) => ({ 
@@ -259,12 +225,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   
   setIsPlaying: (playing) => {
-    const { ytPlayer, silentAudio, isUsingNative } = get();
-    if (ytPlayer && !isUsingNative) {
+    const { ytPlayer, silentAudio, activeProvider } = get();
+    if (activeProvider === 'youtube' && ytPlayer) {
       if (playing && ytPlayer.playVideo) ytPlayer.playVideo();
       if (!playing && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
     }
-    if (silentAudio) {
+    if (activeProvider === 'direct' && silentAudio) {
       if (playing) silentAudio.play().catch(() => {});
       else silentAudio.pause();
     }
@@ -272,13 +238,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   
   togglePlay: () => set((state) => {
-    if (state.ytPlayer || state.silentAudio) {
+    if (state.activeProvider === 'youtube' && state.ytPlayer) {
       if (state.isPlaying) {
-        if (!state.isUsingNative && state.ytPlayer) state.ytPlayer.pauseVideo();
-        if (state.silentAudio) state.silentAudio.pause();
+        if (state.ytPlayer.pauseVideo) state.ytPlayer.pauseVideo();
       } else {
-        if (!state.isUsingNative && state.ytPlayer) state.ytPlayer.playVideo();
-        if (state.silentAudio) state.silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
+        if (state.ytPlayer.playVideo) state.ytPlayer.playVideo();
+      }
+    } else if (state.activeProvider === 'direct' && state.silentAudio) {
+      if (state.isPlaying) {
+        state.silentAudio.pause();
+      } else {
+        state.silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
       }
     }
     return { isPlaying: !state.isPlaying };
