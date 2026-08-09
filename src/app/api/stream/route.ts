@@ -37,7 +37,6 @@ export async function GET(request: Request) {
     const audioResponse = await fetch(bestAudio.url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Range': request.headers.get('range') || 'bytes=0-',
       },
     });
 
@@ -45,17 +44,14 @@ export async function GET(request: Request) {
     const headers = new Headers();
     headers.set('Access-Control-Allow-Origin', '*');
     headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Range');
-    headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/webm');
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mp4');
     
-    if (audioResponse.status === 206) {
-      headers.set('Content-Range', audioResponse.headers.get('Content-Range') || '');
-      headers.set('Accept-Ranges', 'bytes');
-      headers.set('Content-Length', audioResponse.headers.get('Content-Length') || '');
-    }
+    // We explicitly DO NOT set Accept-Ranges: bytes.
+    // This forces iOS Safari to download the entire audio file in a single connection.
 
     return new Response(audioResponse.body, {
-      status: audioResponse.status,
+      status: 200,
       headers,
     });
   } catch (error: any) {
@@ -79,19 +75,18 @@ export async function GET(request: Request) {
           const audioResponse = await fetch(audio.url, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-              'Range': request.headers.get('range') || 'bytes=0-',
             },
           });
 
           const headers = new Headers();
           headers.set('Access-Control-Allow-Origin', '*');
-          headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/webm');
-          if (audioResponse.status === 206) {
-            headers.set('Content-Range', audioResponse.headers.get('Content-Range') || '');
-            headers.set('Accept-Ranges', 'bytes');
-            headers.set('Content-Length', audioResponse.headers.get('Content-Length') || '');
-          }
-          return new Response(audioResponse.body, { status: audioResponse.status, headers });
+          headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/mp4');
+          
+          // We explicitly DO NOT set Accept-Ranges: bytes.
+          // This forces iOS Safari to download the entire 3MB audio file in a single connection,
+          // preventing it from making hundreds of chunked Range requests which would spin up hundreds of serverless lambdas.
+
+          return new Response(audioResponse.body, { status: 200, headers });
         }
       } catch (failoverError) {
         console.warn(`Failover instance ${instance} failed. Trying next...`);
