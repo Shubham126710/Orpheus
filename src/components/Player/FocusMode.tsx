@@ -78,19 +78,25 @@ export default function FocusMode({ isOpen, onClose }: FocusModeProps) {
 
   if (!isOpen) return null;
 
-  // Complex decoupled organic liquid color palettes
+  // Deep, atmospheric evolving color cycles.
+  // PURPLE → BLUE → CYAN → TEAL → GREEN → YELLOW → ORANGE → PINK → MAGENTA → PURPLE.
   const palettes = {
     focus: { 
-      l1: '#2e1065', // Massive slow deep violet
-      l2: '#9333ea', // Core fluid purple/magenta
-      l3: '#0284c7', // Cyan/blue accent
-      l4: '#c4b5fd'  // Lavender highlight
+      // Layer 1: Massive slow base. Very deep to maintain dark atmosphere.
+      l1: ['#3b0764', '#1e3a8a', '#083344', '#115e59', '#064e3b', '#713f12', '#7c2d12', '#831843', '#701a75', '#3b0764'],
+      // Layer 2: Core fluid. Slightly brighter but rich.
+      l2: ['#7c3aed', '#2563eb', '#0891b2', '#0d9488', '#16a34a', '#ca8a04', '#ea580c', '#db2777', '#c026d3', '#7c3aed'],
+      // Layer 3: Accent. Rich jewel tones.
+      l3: ['#8b5cf6', '#3b82f6', '#06b6d4', '#14b8a6', '#22c55e', '#eab308', '#f97316', '#ec4899', '#d946ef', '#8b5cf6'],
+      // Layer 4: Highlight. Soft, but muted to prevent blinding the timer.
+      l4: ['#a78bfa', '#60a5fa', '#22d3ee', '#2dd4bf', '#4ade80', '#fde047', '#fb923c', '#f472b6', '#e879f9', '#a78bfa']
     },
     break: { 
-      l1: '#701a75', // Massive warm purple
-      l2: '#e11d48', // Core magenta/pink
-      l3: '#ea580c', // Orange accent
-      l4: '#fca5a5'  // Coral highlight
+      // Coral → Pink → Orange → Magenta → Warm Purple → Coral
+      l1: ['#881337', '#831843', '#7c2d12', '#701a75', '#4a044e', '#881337'],
+      l2: ['#e11d48', '#be185d', '#ea580c', '#c026d3', '#7e22ce', '#e11d48'],
+      l3: ['#f43f5e', '#db2777', '#f97316', '#d946ef', '#9333ea', '#f43f5e'],
+      l4: ['#fb7185', '#f472b6', '#fb923c', '#e879f9', '#a855f7', '#fb7185']
     },
   };
   
@@ -106,6 +112,8 @@ export default function FocusMode({ isOpen, onClose }: FocusModeProps) {
     ],
   };
 
+  const cycleDuration = 120; // 2 minutes for a full cycle
+
   return (
     <AnimatePresence>
       <motion.div
@@ -120,57 +128,69 @@ export default function FocusMode({ isOpen, onClose }: FocusModeProps) {
           
           {/* Layer 1: Massive Deep Violet/Purple Base - Very Slow */}
           <motion.div 
-            animate={shouldReduceMotion ? {} : {
+            animate={shouldReduceMotion ? { backgroundColor: currentPalette.l1[0] } : {
               ...blobAnimationProps,
               rotate: [0, 90, 180, 270, 360],
               opacity: [0.6, 0.8, 0.6],
+              backgroundColor: currentPalette.l1
             }}
-            transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] blur-[120px] md:blur-[160px] transition-colors duration-[3000ms]"
-            style={{ backgroundColor: currentPalette.l1 }}
+            transition={{ 
+              duration: 45, repeat: Infinity, ease: "linear",
+              backgroundColor: { duration: cycleDuration, repeat: Infinity, ease: "linear" }
+            }}
+            className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] blur-[120px] md:blur-[160px]"
           />
           
           {/* Layer 2: Core Purple/Magenta Fluid - Medium Slow */}
           <motion.div 
-            animate={shouldReduceMotion ? {} : {
+            animate={shouldReduceMotion ? { backgroundColor: currentPalette.l2[0] } : {
               ...blobAnimationProps,
               rotate: [360, 270, 180, 90, 0],
               x: ['-5%', '10%', '-5%'],
               y: ['5%', '-10%', '5%'],
               opacity: [0.5, 0.75, 0.5],
+              backgroundColor: currentPalette.l2
             }}
-            transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[10%] right-[-10%] w-[70%] h-[80%] blur-[100px] md:blur-[140px] transition-colors duration-[3000ms]"
-            style={{ backgroundColor: currentPalette.l2 }}
+            transition={{ 
+              duration: 35, repeat: Infinity, ease: "easeInOut",
+              backgroundColor: { duration: cycleDuration, repeat: Infinity, ease: "linear" }
+            }}
+            className="absolute top-[10%] right-[-10%] w-[70%] h-[80%] blur-[100px] md:blur-[140px]"
           />
           
           {/* Layer 3: Cyan/Orange Accent - Drifting across */}
           <motion.div 
-            animate={shouldReduceMotion ? {} : {
+            animate={shouldReduceMotion ? { backgroundColor: currentPalette.l3[0] } : {
               ...blobAnimationProps,
               rotate: [0, -180, -360],
               x: ['10%', '-15%', '10%'],
               y: ['10%', '15%', '10%'],
               opacity: [0.3, 0.5, 0.3],
+              backgroundColor: currentPalette.l3
             }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            className="absolute bottom-[-15%] left-[-10%] w-[60%] h-[60%] blur-[90px] md:blur-[120px] transition-colors duration-[3000ms]"
-            style={{ backgroundColor: currentPalette.l3 }}
+            transition={{ 
+              duration: 25, repeat: Infinity, ease: "easeInOut", delay: 2,
+              backgroundColor: { duration: cycleDuration, repeat: Infinity, ease: "linear" }
+            }}
+            className="absolute bottom-[-15%] left-[-10%] w-[60%] h-[60%] blur-[90px] md:blur-[120px]"
           />
 
           {/* Layer 4: Lavender/Coral Highlight - Breathing in and out of periphery */}
           <motion.div 
-            animate={shouldReduceMotion ? {} : {
+            animate={shouldReduceMotion ? { backgroundColor: currentPalette.l4[0] } : {
               ...blobAnimationProps,
               rotate: [0, 180, 360],
               x: ['-10%', '5%', '-10%'],
               y: ['-5%', '10%', '-5%'],
               opacity: [0.15, 0.4, 0.15],
               scale: [0.9, 1.1, 0.9],
+              backgroundColor: currentPalette.l4
             }}
-            transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-            className="absolute top-[-5%] left-[20%] w-[45%] h-[45%] blur-[80px] md:blur-[100px] transition-colors duration-[3000ms]"
-            style={{ backgroundColor: currentPalette.l4 }}
+            transition={{ 
+              duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5,
+              backgroundColor: { duration: cycleDuration, repeat: Infinity, ease: "linear" }
+            }}
+            className="absolute top-[-5%] left-[20%] w-[45%] h-[45%] blur-[80px] md:blur-[100px]"
           />
         </div>
 
