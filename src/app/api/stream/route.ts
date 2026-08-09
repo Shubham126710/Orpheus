@@ -11,17 +11,16 @@ export async function GET(request: Request) {
   }
 
   try {
-    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    
     // Use youtube-dl-exec (which downloads and runs the latest yt-dlp standalone binary)
     // This perfectly bypasses Node 20+ undici HTTP bugs AND YouTube's cipher changes!
-    const output: any = await youtubedl(videoUrl, {
-      dumpJson: true,
+    const output: any = await youtubedl(`https://www.youtube.com/watch?v=${videoId}`, {
+      dumpSingleJson: true,
       noWarnings: true,
-      callHome: false,
-      noCheckCertificates: true,
+      noCheckCertificate: true,
       preferFreeFormats: true,
       youtubeSkipDashManifest: true,
+      // CRITICAL FOR iOS: We MUST force m4a (aac). iOS WebKit cannot decode WebM/Opus.
+      format: 'bestaudio[ext=m4a]/bestaudio[vcodec=none]/best',
       referer: 'https://www.youtube.com/'
     });
 

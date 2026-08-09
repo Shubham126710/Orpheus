@@ -1,4 +1,4 @@
-const CACHE_NAME = 'orpheus-v1';
+const CACHE_NAME = 'orpheus-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
