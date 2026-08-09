@@ -7,6 +7,7 @@ import FullScreenPlayer from "@/components/Player/FullScreenPlayer";
 import ClientBottomNavWrapper from "@/components/ClientBottomNavWrapper";
 import MiniPlayer from "@/components/Player/MiniPlayer";
 import ContextMenu from "@/components/ContextMenu";
+import Footer from "@/components/Footer";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -61,6 +62,7 @@ export default function RootLayout({
         {/* Main Content Area */}
         <main className="flex-1 w-full">
           {children}
+          <Footer />
         </main>
         
         {/* Navigation & Overlays */}

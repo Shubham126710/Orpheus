@@ -58,14 +58,26 @@ export async function GET(request: NextRequest) {
         }
       }
     } catch (e) {
-      console.warn("Failed to fetch MusicBrainz data", e);
+      console.error("MusicBrainz fetch failed", e);
+    }
+
+    // Fetch artist bio from Wikipedia
+    let wikiDescription = null;
+    try {
+      const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist.name)}`);
+      if (wikiRes.ok) {
+        const wikiJson = await wikiRes.json();
+        wikiDescription = wikiJson.extract;
+      }
+    } catch (e) {
+      console.error("Wikipedia fetch failed", e);
     }
 
     return NextResponse.json({
       id: artist.artistId,
       name: artist.name,
-      description: artist.description || '',
       thumbnail: artist.thumbnails?.[artist.thumbnails.length - 1]?.url || '/placeholder-art.jpg',
+      description: wikiDescription || artist.description || '',
       tracks: formattedTracks,
       albums: artist.topAlbums || artist.albums || [],
       singles: artist.topSingles || artist.singles || [],

@@ -2,13 +2,14 @@
 
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, SkipForward, SkipBack, Shuffle, Heart, ChevronDown, Repeat, Mic2, ListMusic, Music, PlusSquare } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Shuffle, Heart, ChevronDown, Repeat, Mic2, ListMusic, Music, PlusSquare, Target } from "lucide-react";
 import Image from "next/image";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useLibraryStore } from "@/store/useLibraryStore";
 import { useEffect, useState, useRef } from "react";
 import { useColorExtraction } from "@/hooks/useColorExtraction";
 import PlaylistModal from "@/components/PlaylistModal";
+import FocusMode from "./FocusMode";
 
 export default function FullScreenPlayer() {
   const { currentTrack, isPlaying, setIsPlaying, playNext, playPrevious, playTrack, queue, progress, setProgress, isExpanded, setIsExpanded, currentTime, duration, setSeekTo, repeatMode, toggleRepeat, isShuffled, toggleShuffle, showLyrics, setShowLyrics } = usePlayerStore();
@@ -219,6 +220,7 @@ export default function FullScreenPlayer() {
 
   const [showQueue, setShowQueue] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [showFocusMode, setShowFocusMode] = useState(false);
 
   useColorExtraction(highResThumbnail);
 
@@ -335,20 +337,28 @@ export default function FullScreenPlayer() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed inset-0 z-[200] flex flex-col overflow-y-auto overflow-x-hidden"
+          className="fixed inset-0 z-[200] flex flex-col overflow-y-auto overflow-x-hidden bg-noise"
           style={{ backgroundColor: dominantColor ? dominantColor : '#2A201A' }}
         >
           {/* Noise Overlay for retro feel */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+          <div className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
 
           <div className="relative z-10 flex flex-col h-[100dvh] px-4 md:px-8 py-6 md:py-10 max-w-5xl mx-auto w-full justify-between">
             {/* Top Area (Header & Title) */}
-            <div className="w-full flex flex-col items-center shrink-0">
+            <div className="w-full flex flex-col items-center shrink-0 relative">
               <button 
                 onClick={() => setIsExpanded(false)}
-                className={`absolute top-6 left-4 md:top-10 md:left-8 w-10 h-10 flex items-center justify-center transition-colors ${textMuted}`}
+                className={`absolute top-0 left-0 w-10 h-10 flex items-center justify-center transition-colors ${textMuted}`}
               >
                 <ChevronDown size={28} strokeWidth={1.5} />
+              </button>
+              
+              <button 
+                onClick={() => setShowFocusMode(true)}
+                className={`absolute top-0 right-0 w-10 h-10 flex items-center justify-center transition-transform hover:scale-110 ${textMuted}`}
+                title="Focus Mode"
+              >
+                <Target size={24} strokeWidth={1.5} />
               </button>
               
               <div className="w-full max-w-xl text-center px-12 mt-2">
@@ -627,6 +637,7 @@ export default function FullScreenPlayer() {
 
             </div>
           </div>
+          <FocusMode isOpen={showFocusMode} onClose={() => setShowFocusMode(false)} />
         </motion.div>
       )}
     </AnimatePresence>

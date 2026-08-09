@@ -185,7 +185,7 @@ export default function SearchPage() {
                 <div className="text-center">
                   <h3 className="font-geist font-black text-sm md:text-lg text-black truncate uppercase">{item.title}</h3>
                   <p className="font-geist text-[10px] md:text-xs font-bold text-black/70 uppercase mt-1 truncate">
-                    {item.type === 'SONG' ? 'Song • ' : item.type === 'PLAYLIST' ? 'Playlist • ' : item.type === 'ARTIST' ? 'Artist' : ''}{item.artist}
+                    {item.type === 'ARTIST' ? 'Artist' : `${item.type === 'SONG' ? 'Song • ' : item.type === 'PLAYLIST' ? 'Playlist • ' : ''}${item.artist}`}
                   </p>
                 </div>
               </div>
