@@ -362,7 +362,7 @@ export default function FullScreenPlayer() {
             </div>
 
             {/* Center Art Area with Vertical Visualizers or Lyrics */}
-            <div className="flex-1 flex items-center justify-center w-full relative min-h-0 py-6 md:py-10">
+            <div className="flex-1 flex items-start md:items-center justify-center w-full relative min-h-0 pt-2 pb-6 md:py-10">
               <div className="relative flex items-center justify-center w-full h-full max-w-5xl">
                 
                 {/* Left Visualizer */}
@@ -379,11 +379,12 @@ export default function FullScreenPlayer() {
 
                 {/* Background Layer (Art only, gets blurred on lyrics or queue) */}
                 <motion.div 
-                  className="relative w-[70vw] h-[70vw] max-w-[350px] max-h-[350px] md:w-auto md:h-full md:aspect-square bg-white p-2 md:p-4 shadow-[0_30px_60px_rgba(0,0,0,0.4)] flex-shrink-0 mx-6 md:mx-12 z-0"
+                  className="relative w-[85vw] h-[85vw] max-w-[380px] max-h-[380px] md:w-auto md:h-full md:aspect-square bg-white p-2 md:p-4 shadow-[0_30px_60px_rgba(0,0,0,0.4)] flex-shrink-0 mx-6 md:mx-12 z-0"
                   animate={{ 
                     scale: (showLyrics || showQueue) ? 0.8 : isPlaying ? 1 : 0.97,
                     opacity: (showLyrics || showQueue) ? 0.15 : 1,
-                    filter: (showLyrics || showQueue) ? "blur(20px)" : "blur(0px)"
+                    filter: (showLyrics || showQueue) ? "blur(20px)" : "blur(0px)",
+                    marginTop: (showLyrics || showQueue) ? "0px" : "2vh" // Add a tiny bit of top margin on mobile when playing
                   }}
                   transition={{ duration: 0.6, ease: "easeInOut" }}
                 >

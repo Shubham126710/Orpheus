@@ -78,10 +78,11 @@ export default function AudioEngine() {
       try {
         // Detect iOS (including iPadOS) - iOS aggressively suspends Web Audio API in the background,
         // which completely silences the <audio> element if it's routed through MediaElementSource.
-        const isIOS = typeof window !== 'undefined' && 
+        const isIOSDevice = typeof window !== 'undefined' && 
           (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
-          
-        if (!isIOS) {
+        setIsIOS(isIOSDevice);
+        
+        if (!isIOSDevice) {
           const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
           const analyser = audioCtx.createAnalyser();
           analyser.fftSize = 256;
@@ -229,7 +230,7 @@ export default function AudioEngine() {
         We place it fixed at the top left, tiny, and almost completely transparent.
         This fools Safari into thinking it's a visible element on screen, allowing synchronous playback.
       */}
-      {!isUsingNative && (
+      {!isUsingNative && !isIOS && (
         <YouTube
           videoId="dQw4w9WgXcQ" // Dummy ID. We strictly control playback via the global ytPlayer API synchronously.
           opts={{

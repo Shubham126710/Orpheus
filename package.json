@@ -6,10 +6,11 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "chmod +x ./node_modules/youtube-dl-exec/bin/yt-dlp && ./node_modules/youtube-dl-exec/bin/yt-dlp --update-to nightly || true"
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.16.12",
