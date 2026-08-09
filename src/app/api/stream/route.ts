@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+// @ts-ignore
 import ytdl from '@ru-hend/ytdl-core';
 
 export async function GET(req: NextRequest) {
