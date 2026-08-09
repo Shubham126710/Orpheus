@@ -74,11 +74,38 @@ export default function FullScreenPlayer() {
           for (let i = 0; i < dataArray.length; i++) {
              energy += dataArray[i];
           }
-          const averageEnergy = energy / dataArray.length;
-          const activeBeat = 1.0 + (averageEnergy / 255) * 1.5;
+          
+          if (energy === 0) {
+             // Fallback Math visualization (CORS blocked the audio data)
+             for (let i = 0; i < numPoints; i++) {
+                let targetY = 0;
+                const normalized = i / numPoints;
+                const w1 = Math.sin(normalized * 15.3 + time * 1.7) * 0.4;
+                const w2 = Math.sin(normalized * 27.8 - time * 2.3) * 0.3;
+                const w3 = Math.sin(normalized * 7.1 + time * 0.8) * 0.2;
+                const w4 = Math.sin(normalized * 43.5 - time * 3.1) * 0.15;
+                const w5 = Math.sin(normalized * 3.14 + time * 1.1) * 0.3;
+                const b1 = Math.pow(Math.sin(time * 0.8), 8) * 0.8;
+                const b2 = Math.pow(Math.sin(time * 1.4 + 1), 6) * 0.6;
+                const activeBeat = 1.0 + b1 + b2;
+                const fizz = Math.sin(normalized * 100 + time * 10) * 0.05;
+                const v = (w1 + w2 + w3 + w4 + w5 + fizz) * activeBeat;
+                const dist = Math.abs(i - numPoints/2) / (numPoints/2);
+                const windowMultiplier = Math.pow(Math.cos(dist * Math.PI / 2), 3);
+                targetY = v * (rect.height / 2) * windowMultiplier * 1.5; 
+                
+                currentPoints[i] += (targetY - currentPoints[i]) * 0.2;
+                const x = (i / (numPoints - 1)) * rect.width;
+                const y = centerY + currentPoints[i];
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+             }
+          } else {
+             const averageEnergy = energy / dataArray.length;
+             const activeBeat = 1.0 + (averageEnergy / 255) * 1.5;
 
-          for (let i = 0; i < numPoints; i++) {
-            // Map the 100 visual points to the frequency bins (use lower 70% of frequencies)
+             for (let i = 0; i < numPoints; i++) {
+               // Map the 100 visual points to the frequency bins (use lower 70% of frequencies)
             const binIndex = Math.floor((i / numPoints) * dataArray.length * 0.7);
             const freqVal = dataArray[binIndex] / 255.0; // 0 to 1
             

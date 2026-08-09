@@ -45,6 +45,8 @@ interface PlayerState {
   setYtPlayer: (player: any) => void;
   silentAudio: HTMLAudioElement | null;
   setSilentAudio: (audio: HTMLAudioElement) => void;
+  isUsingNative: boolean;
+  setIsUsingNative: (val: boolean) => void;
   analyser: AnalyserNode | null;
   setAnalyser: (analyser: AnalyserNode) => void;
   fetchStreamUrl: (videoId: string) => Promise<void>;
@@ -70,12 +72,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   silentAudio: null,
   setSilentAudio: (audio) => set({ silentAudio: audio }),
   
+  isUsingNative: false,
+  setIsUsingNative: (val) => set({ isUsingNative: val }),
+  
   analyser: null,
   setAnalyser: (analyser) => set({ analyser }),
 
   playTrack: (track, contextQueue) => {
     // Add to recently played automatically
     useLibraryStore.getState().addToRecent(track);
+    
+    // Reset native flag on new track
+    set({ isUsingNative: false });
     
     // Synchronously trigger YouTube player for strict mobile Safari autoplay policies
     const { ytPlayer, silentAudio } = get();
@@ -127,9 +135,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           silentAudio.src = data.url;
           silentAudio.play().catch(e => console.error("Native audio play blocked:", e));
           
+          set({ isUsingNative: true });
           const { ytPlayer } = get();
-          if (ytPlayer && ytPlayer.mute) {
-            ytPlayer.mute();
+          if (ytPlayer && ytPlayer.pauseVideo) {
+            ytPlayer.pauseVideo();
           }
         }
       }
@@ -181,8 +190,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   
   setIsPlaying: (playing) => {
-    const { ytPlayer, silentAudio } = get();
-    if (ytPlayer) {
+    const { ytPlayer, silentAudio, isUsingNative } = get();
+    if (ytPlayer && !isUsingNative) {
       if (playing && ytPlayer.playVideo) ytPlayer.playVideo();
       if (!playing && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
     }
@@ -192,6 +201,20 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
     set({ isPlaying: playing });
   },
+  
+  togglePlay: () => set((state) => {
+    if (state.ytPlayer || state.silentAudio) {
+      if (state.isPlaying) {
+        if (!state.isUsingNative && state.ytPlayer) state.ytPlayer.pauseVideo();
+        if (state.silentAudio) state.silentAudio.pause();
+      } else {
+        if (!state.isUsingNative && state.ytPlayer) state.ytPlayer.playVideo();
+        if (state.silentAudio) state.silentAudio.play().catch(e => console.log("Silent audio blocked:", e));
+      }
+    }
+    return { isPlaying: !state.isPlaying };
+  }),
+  
   setProgress: (progress) => set({ progress }),
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),

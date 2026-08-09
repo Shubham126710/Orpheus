@@ -8,7 +8,6 @@ export default function AudioEngine() {
   const { currentTrack, isPlaying, setIsPlaying, setProgress, setCurrentTime, setDuration, seekTo, setSeekTo, playNext } = usePlayerStore();
   
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
-  const timeUpdateInterval = useRef<NodeJS.Timeout | null>(null);
   const isScrubbing = useRef(false);
 
   // Register PWA Service Worker
@@ -29,6 +28,12 @@ export default function AudioEngine() {
   const handleStateChange = (event: any) => {
     // PlayerState: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
     const state = event.data;
+    const storeState = usePlayerStore.getState();
+    
+    // Ignore YouTube state changes if we are using native audio
+    if (storeState.isUsingNative && state !== 1) {
+       return;
+    }
     
     if (state === 1) { // PLAYING
       setIsPlaying(true);
@@ -38,42 +43,16 @@ export default function AudioEngine() {
       if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = 'playing';
       }
-      
-      // Start time polling
-      if (!timeUpdateInterval.current) {
-        timeUpdateInterval.current = setInterval(() => {
-          if (player && player.getCurrentTime && !isScrubbing.current) {
-            const time = player.getCurrentTime();
-            const dur = player.getDuration();
-            if (dur > 0) {
-              setCurrentTime(time);
-              setProgress((time / dur) * 100);
-            }
-          }
-        }, 500);
-      }
     } else if (state === 2) { // PAUSED
-      const storeIsPlaying = usePlayerStore.getState().isPlaying;
-      
       // If YouTube internally paused the video (due to screen lock / visibility change)
       // but the user didn't explicitly pause it, force it back to playing immediately!
-      if (storeIsPlaying) {
+      if (storeState.isPlaying) {
         console.log("YouTube auto-paused, forcing play!");
         event.target.playVideo();
       } else {
         setIsPlaying(false);
-        // Stop time polling
-        if (timeUpdateInterval.current) {
-          clearInterval(timeUpdateInterval.current);
-          timeUpdateInterval.current = null;
-        }
       }
     } else if (state === 0) { // ENDED
-      // Stop time polling
-      if (timeUpdateInterval.current) {
-        clearInterval(timeUpdateInterval.current);
-        timeUpdateInterval.current = null;
-      }
       playNext();
     }
   };
@@ -120,15 +99,52 @@ export default function AudioEngine() {
   // The isPlaying state is now synced synchronously in the Zustand store (usePlayerStore.ts)
   // to comply with strict iOS Safari autoplay policies. Do not add async playVideo calls here.
 
+  // Global time polling interval independent of YouTube state
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const state = usePlayerStore.getState();
+      if (!state.isPlaying || isScrubbing.current) return;
+      
+      if (state.isUsingNative && state.silentAudio) {
+         const time = state.silentAudio.currentTime;
+         const dur = state.silentAudio.duration;
+         if (dur > 0) {
+            setCurrentTime(time);
+            setProgress((time / dur) * 100);
+         }
+      } else if (player && player.getCurrentTime) {
+         // YouTube polling
+         const time = player.getCurrentTime();
+         const dur = player.getDuration();
+         if (dur > 0) {
+            setCurrentTime(time);
+            setProgress((time / dur) * 100);
+         }
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [player, setCurrentTime, setProgress]);
+
   // Handle seeking from UI
   useEffect(() => {
     if (seekTo !== null && player) {
       isScrubbing.current = true;
-      player.seekTo(seekTo, true);
-      setCurrentTime(seekTo);
-      if (player.getDuration() > 0) {
-         setProgress((seekTo / player.getDuration()) * 100);
+      const state = usePlayerStore.getState();
+      
+      if (state.isUsingNative && state.silentAudio) {
+        state.silentAudio.currentTime = seekTo;
+        setCurrentTime(seekTo);
+        if (state.silentAudio.duration > 0) {
+           setProgress((seekTo / state.silentAudio.duration) * 100);
+        }
+      } else {
+        player.seekTo(seekTo, true);
+        setCurrentTime(seekTo);
+        if (player.getDuration() > 0) {
+           setProgress((seekTo / player.getDuration()) * 100);
+        }
       }
+      
       // Brief delay to prevent jitter
       setTimeout(() => {
         isScrubbing.current = false;
@@ -168,12 +184,6 @@ export default function AudioEngine() {
         }
       });
     }
-
-    return () => {
-      if (timeUpdateInterval.current) {
-        clearInterval(timeUpdateInterval.current);
-      }
-    };
   }, [player, setIsPlaying]);
 
   // Update Media Session Metadata
