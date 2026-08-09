@@ -5,7 +5,7 @@ import { usePlayerStore } from "@/store/usePlayerStore";
 import YouTube, { YouTubePlayer } from "react-youtube";
 
 export default function AudioEngine() {
-  const { currentTrack, isPlaying, setIsPlaying, setProgress, setCurrentTime, setDuration, seekTo, setSeekTo, playNext } = usePlayerStore();
+  const { currentTrack, isPlaying, setIsPlaying, setProgress, setCurrentTime, setDuration, seekTo, setSeekTo, playNext, isUsingNative } = usePlayerStore();
   
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
   const isScrubbing = useRef(false);
@@ -223,28 +223,30 @@ export default function AudioEngine() {
         We place it fixed at the top left, tiny, and almost completely transparent.
         This fools Safari into thinking it's a visible element on screen, allowing synchronous playback.
       */}
-      <YouTube
-        videoId="dQw4w9WgXcQ" // Dummy ID. We strictly control playback via the global ytPlayer API synchronously.
-        opts={{
-          height: '100%',
-          width: '100%',
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            iv_load_policy: 3,
-            rel: 0,
-            showinfo: 0,
-            modestbranding: 1,
-            playsinline: 1, // CRITICAL for iOS Safari to play without forcing fullscreen video
-            origin: typeof window !== 'undefined' ? window.location.origin : ''
-          },
-        }}
-        onReady={handleReady}
-        onStateChange={handleStateChange}
-        onError={handleError}
-      />
+      {!isUsingNative && (
+        <YouTube
+          videoId="dQw4w9WgXcQ" // Dummy ID. We strictly control playback via the global ytPlayer API synchronously.
+          opts={{
+            height: '100%',
+            width: '100%',
+            playerVars: {
+              autoplay: 0,
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              iv_load_policy: 3,
+              rel: 0,
+              showinfo: 0,
+              modestbranding: 1,
+              playsinline: 1, // CRITICAL for iOS Safari to play without forcing fullscreen video
+              origin: typeof window !== 'undefined' ? window.location.origin : ''
+            },
+          }}
+          onReady={handleReady}
+          onStateChange={handleStateChange}
+          onError={handleError}
+        />
+      )}
       {/* Silent Audio Hack to keep Safari awake in the background, also plays real track on iOS */}
       <audio 
         ref={silentAudioRef}
