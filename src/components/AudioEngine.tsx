@@ -76,20 +76,29 @@ export default function AudioEngine() {
       usePlayerStore.getState().setSilentAudio(audioEl);
       
       try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        const source = audioCtx.createMediaElementSource(audioEl);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        usePlayerStore.getState().setAnalyser(analyser);
-        
-        // Add a play listener to resume context
-        audioEl.addEventListener('play', () => {
-          if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-          }
-        });
+        // Detect iOS (including iPadOS) - iOS aggressively suspends Web Audio API in the background,
+        // which completely silences the <audio> element if it's routed through MediaElementSource.
+        const isIOS = typeof window !== 'undefined' && 
+          (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+          
+        if (!isIOS) {
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          const source = audioCtx.createMediaElementSource(audioEl);
+          source.connect(analyser);
+          analyser.connect(audioCtx.destination);
+          usePlayerStore.getState().setAnalyser(analyser);
+          
+          // Add a play listener to resume context
+          audioEl.addEventListener('play', () => {
+            if (audioCtx.state === 'suspended') {
+              audioCtx.resume();
+            }
+          });
+        } else {
+          console.log("iOS detected: Bypassing Web Audio API to preserve background playback.");
+        }
       } catch (e) {
         console.warn("Web Audio API setup failed:", e);
       }
