@@ -33,13 +33,31 @@ export async function GET(request: Request) {
       throw new Error('No valid audio stream found');
     }
 
-    // Set CORS headers for the client and Web Audio API
-    return NextResponse.json({ url: bestAudio.url }, {
+    // Proxy the audio stream through our Vercel server to bypass IP-binding restrictions!
+    // Since yt-dlp gets the URL using Vercel's IP, we MUST download it from Vercel's IP.
+    const audioResponse = await fetch(bestAudio.url, {
       headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Range': request.headers.get('range') || 'bytes=0-',
       },
+    });
+
+    // Pipe the audio stream directly to the client
+    const headers = new Headers();
+    headers.set('Access-Control-Allow-Origin', '*');
+    headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Range');
+    headers.set('Content-Type', audioResponse.headers.get('Content-Type') || 'audio/webm');
+    
+    if (audioResponse.status === 206) {
+      headers.set('Content-Range', audioResponse.headers.get('Content-Range') || '');
+      headers.set('Accept-Ranges', 'bytes');
+      headers.set('Content-Length', audioResponse.headers.get('Content-Length') || '');
+    }
+
+    return new Response(audioResponse.body, {
+      status: audioResponse.status,
+      headers,
     });
   } catch (error: any) {
     console.error("Stream extraction error:", error);

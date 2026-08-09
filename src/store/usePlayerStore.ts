@@ -133,11 +133,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       // 4-Stage Failover Pipeline
       const failovers = [
         async () => {
-          const res = await fetch(`/api/stream?id=${videoId}`);
-          if (!res.ok) throw new Error("Vercel API failed");
-          const data = await res.json();
-          if (!data.url) throw new Error("No URL from Vercel");
-          return data.url;
+          // Verify proxy works
+          const res = await fetch(`/api/stream?id=${videoId}`, { headers: { 'Range': 'bytes=0-0' } });
+          if (!res.ok) throw new Error("Vercel API Proxy failed");
+          return `/api/stream?id=${videoId}`;
         },
         async () => {
           const res = await fetch(`https://pipedapi.kavin.rocks/streams/${videoId}`);
