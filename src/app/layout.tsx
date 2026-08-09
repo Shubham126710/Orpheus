@@ -54,7 +54,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geist.variable} ${inter.variable} ${cormorant.variable} ${instrument.variable} antialiased dark`}
     >
-      <body suppressHydrationWarning className="bg-black text-white min-h-screen overflow-x-hidden selection:bg-accent/30 flex flex-col relative pb-40">
+      <body suppressHydrationWarning className="bg-black text-white min-h-screen overflow-x-hidden selection:bg-accent/30 flex flex-col relative">
         <AudioEngine />
         <BackgroundRenderer />
         <ContextMenu />
