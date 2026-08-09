@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -30,6 +30,7 @@
     "soundcloud-scraper": "^5.0.3",
     "tailwind-merge": "^3.6.0",
     "wavesurfer.js": "^7.12.11",
+    "youtube-dl-exec": "^3.1.12",
     "youtube-ext": "^1.1.25",
     "youtube-sr": "^4.3.12",
     "youtubei.js": "^17.2.0",
