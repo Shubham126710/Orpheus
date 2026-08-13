@@ -99,8 +99,7 @@ export default function RetroFilmBackground({ dominantColor }: RetroFilmBackgrou
         }
       `}} />
 
-      {/* Soft Vignette (Darker corners for cinematic print feel) */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.5)_120%)]" />
+      {/* Soft Vignette (Darker corners for cinematic print feel) - REMOVED per user request */}
 
       {/* Subtle Texture Overlay for Paper/Print Feel */}
       <div className="absolute inset-0 opacity-[0.03] mix-blend-color-burn" 
