@@ -1,11 +1,18 @@
 "use client";
 
 import { usePlayerStore } from "@/store/usePlayerStore";
+import { useAuth } from "@/lib/AuthContext";
 import BottomNav from "./BottomNav";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function ClientBottomNavWrapper() {
   const { isExpanded } = usePlayerStore();
+  const { user, loading } = useAuth();
+
+  // Hide the navigation dock completely for unauthenticated guests (e.g. on Landing Page)
+  if (!user || loading) {
+    return null;
+  }
 
   return (
     <AnimatePresence>
