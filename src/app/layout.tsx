@@ -8,6 +8,7 @@ import ClientBottomNavWrapper from "@/components/ClientBottomNavWrapper";
 import MiniPlayer from "@/components/Player/MiniPlayer";
 import ContextMenu from "@/components/ContextMenu";
 import Footer from "@/components/Footer";
+import { AuthProvider } from "@/lib/AuthContext";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -55,22 +56,24 @@ export default function RootLayout({
       className={`${geist.variable} ${inter.variable} ${cormorant.variable} ${instrument.variable} antialiased dark`}
     >
       <body suppressHydrationWarning className="bg-black text-white min-h-screen overflow-x-hidden selection:bg-accent/30 flex flex-col relative">
-        <AudioEngine />
-        <BackgroundRenderer />
-        <ContextMenu />
-        
-        {/* Main Content Area */}
-        <main className="flex-1 w-full">
-          {children}
-          <Footer />
-        </main>
-        
-        {/* Navigation & Overlays */}
-        <FullScreenPlayer />
-        <div className="fixed bottom-0 left-0 w-full z-40 px-4 md:px-8 pb-4 md:pb-8">
-          <ClientBottomNavWrapper />
-        </div>
-        <MiniPlayer />
+        <AuthProvider>
+          <AudioEngine />
+          <BackgroundRenderer />
+          <ContextMenu />
+          
+          {/* Main Content Area */}
+          <main className="flex-1 w-full">
+            {children}
+            <Footer />
+          </main>
+          
+          {/* Navigation & Overlays */}
+          <FullScreenPlayer />
+          <div className="fixed bottom-0 left-0 w-full z-40 px-4 md:px-8 pb-4 md:pb-8">
+            <ClientBottomNavWrapper />
+          </div>
+          <MiniPlayer />
+        </AuthProvider>
       </body>
     </html>
   );

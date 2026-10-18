@@ -179,7 +179,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(currentTrack.artist + ' songs')}`);
         const data = await res.json();
-        const songs = data.results.filter((t: any) => t.id !== currentTrack.id && t.type === 'SONG');
+        const items = Array.isArray(data) ? data : (data.results || []);
+        const songs = items.filter((t: any) => t.id !== currentTrack.id && (t.type === 'SONG' || !t.type));
         if (songs.length > 0) {
           const randomSong = songs[Math.floor(Math.random() * songs.length)];
           get().playTrack(randomSong);
