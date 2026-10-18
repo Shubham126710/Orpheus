@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import { 
   Play, 
@@ -9,12 +9,10 @@ import {
   Sliders, 
   Zap, 
   Volume2, 
-  ChevronDown, 
-  ArrowUpRight, 
-  Radio, 
-  Check 
+  ArrowUpRight 
 } from "lucide-react";
 import FlowArt, { FlowSection } from "@/components/ui/story-scroll";
+import PrismaHero from "@/components/ui/prisma-hero";
 
 interface LandingPageProps {
   onJoinClick: () => void;
@@ -23,7 +21,7 @@ interface LandingPageProps {
 // Major record labels SVG logos
 const LABEL_LOGOS = [
   {
-    name: "UNIVERSAL MUSIC GROUP",
+    name: "Universal Music Group",
     sub: "UMG",
     icon: (
       <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
@@ -35,8 +33,8 @@ const LABEL_LOGOS = [
     )
   },
   {
-    name: "SONY MUSIC",
-    sub: "ENTERTAINMENT",
+    name: "Sony Music",
+    sub: "Entertainment",
     icon: (
       <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
         <path d="M20 75 C 35 25, 65 25, 80 75 C 65 55, 35 55, 20 75 Z" fill="currentColor" />
@@ -45,7 +43,7 @@ const LABEL_LOGOS = [
     )
   },
   {
-    name: "WARNER MUSIC GROUP",
+    name: "Warner Music Group",
     sub: "WMG",
     icon: (
       <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
@@ -55,8 +53,8 @@ const LABEL_LOGOS = [
     )
   },
   {
-    name: "COLUMBIA RECORDS",
-    sub: "EST. 1887",
+    name: "Columbia Records",
+    sub: "Est. 1887",
     icon: (
       <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
         <ellipse cx="50" cy="50" rx="45" ry="25" fill="none" stroke="currentColor" strokeWidth="7" />
@@ -65,7 +63,7 @@ const LABEL_LOGOS = [
     )
   },
   {
-    name: "DEF JAM RECORDINGS",
+    name: "Def Jam Recordings",
     sub: "NYC 1984",
     icon: (
       <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
@@ -75,12 +73,34 @@ const LABEL_LOGOS = [
     )
   },
   {
-    name: "ATLANTIC RECORDS",
-    sub: "WARNER",
+    name: "Atlantic Records",
+    sub: "Warner",
     icon: (
       <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
         <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="6" />
         <path d="M30 72 L 50 25 L 70 72 M 36 58 L 64 58" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+      </svg>
+    )
+  },
+  {
+    name: "Capitol Records",
+    sub: "Hollywood",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
+        <path d="M50 15 L50 85 M20 50 L80 50" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
+        <circle cx="50" cy="50" r="32" fill="none" stroke="currentColor" strokeWidth="6" />
+        <circle cx="50" cy="50" r="10" fill="currentColor" />
+      </svg>
+    )
+  },
+  {
+    name: "Interscope Records",
+    sub: "Universal",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-8 h-8 fill-current" aria-hidden="true">
+        <rect x="25" y="20" width="12" height="60" fill="currentColor" />
+        <circle cx="65" cy="50" r="22" fill="none" stroke="currentColor" strokeWidth="8" />
+        <circle cx="65" cy="50" r="8" fill="currentColor" />
       </svg>
     )
   }
@@ -91,178 +111,168 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
     <div className="relative w-full bg-black text-white font-geist selection:bg-[#FAFF00] selection:text-black">
 
       {/* 
-        PERSISTENT CURVED FLOATING NAVBAR 
-        Fixed on screen with authentic yellow logo, persisting across all scroll chapters
+        PERSISTENT CURVED NOTCH NAVBAR
+        Persists gracefully when scrolling, rounded corners, branded logo badge & quick actions
       */}
-      <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-5xl rounded-full bg-zinc-950/85 backdrop-blur-2xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.9)] px-5 md:px-8 py-3.5 flex items-center justify-between transition-all duration-300">
-        
-        {/* Authentic Golden Yellow Circular Logo */}
-        <div 
-          className="flex items-center gap-3 cursor-pointer group select-none" 
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        >
-          <div className="w-9 h-9 rounded-full bg-[#FAFF00] flex items-center justify-center p-1.5 shadow-[0_0_20px_rgba(250,255,0,0.5)] group-hover:scale-105 transition-transform shrink-0">
-            <Image 
-              src="/logo-trimmed.png" 
-              alt="Orpheus Lyre Logo" 
-              width={22} 
-              height={22} 
-              className="object-contain"
-              priority
-            />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-lg font-black tracking-[0.25em] uppercase text-white leading-none">
+      <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-4xl">
+        <nav className="flex items-center justify-between rounded-full bg-zinc-950/85 border border-white/10 px-4 sm:px-7 py-2.5 shadow-[0_12px_45px_rgba(0,0,0,0.85)] backdrop-blur-xl">
+          {/* Brand Logo with exact yellow circular badge */}
+          <a href="#hero" className="flex items-center gap-3 group">
+            <div className="w-8 h-8 rounded-full bg-[#FAFF00] flex items-center justify-center p-1.5 shadow-[0_0_15px_rgba(250,255,0,0.4)] group-hover:scale-105 transition-transform shrink-0">
+              <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={20} height={20} className="object-contain" />
+            </div>
+            <span className="text-sm font-black tracking-[0.22em] uppercase text-white font-geist">
               Orpheus
             </span>
-            <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-white/40 mt-0.5">
-              Audio Client
-            </span>
-          </div>
-        </div>
+          </a>
 
-        {/* Action CTAs */}
-        <div className="flex items-center gap-3">
-          <button 
-            type="button"
-            onClick={onJoinClick}
-            className="text-xs font-bold tracking-widest uppercase text-white/80 hover:text-white px-4 py-2 transition-colors cursor-pointer"
-          >
-            Sign In
-          </button>
-          <button 
-            type="button"
-            onClick={onJoinClick}
-            className="text-xs font-black tracking-[0.2em] uppercase bg-[#FAFF00] text-black px-6 py-2.5 rounded-full hover:bg-white transition-all duration-300 shadow-[0_0_25px_rgba(250,255,0,0.35)] hover:scale-105 cursor-pointer"
-          >
-            Join Free
-          </button>
-        </div>
-
-      </header>
-
-      {/* GSAP Story Scroll Flow Presentation */}
-      <FlowArt aria-label="Orpheus Story Presentation">
-
-        {/* 
-          CHAPTER 01: THE SOUND
-          Orpheus Electric Yellow (#FAFF00) with Pitch Black Typography
-        */}
-        <FlowSection aria-label="The Sound" style={{ backgroundColor: "#FAFF00", color: "#000" }}>
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.3em]">01 — The Sound</p>
-            <span className="text-[10px] font-black uppercase tracking-widest border border-black/20 px-3 py-1 rounded-full">
-              33⅓ RPM Hi-Fi
-            </span>
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-7">
+            <a href="#features" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Architecture</a>
+            <a href="#curation" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Curation</a>
+            <a href="#catalog" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Catalog</a>
+            <a href="#join" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Launch</a>
           </div>
 
-          <hr className="my-[1.5vw] border-none border-t border-black/20" />
-
-          <div className="my-auto py-4">
-            <h1 className="text-[clamp(3.5rem,10.5vw,13rem)] font-normal leading-[0.88] uppercase tracking-tight font-instrument">
-              Experience
-              <br />
-              <span className="italic font-normal">Music,</span>
-              <br />
-              Cinematically.
-            </h1>
-          </div>
-
-          <hr className="my-[1.5vw] border-none border-t border-black/20" />
-
-          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
-            <p className="max-w-[48ch] text-[clamp(1rem,2vw,1.75rem)] font-normal leading-relaxed text-black/80 font-geist">
-              A high-performance streaming client bridging modern liquid interfaces, intelligent taste curation, and nostalgic analog warmth.
-            </p>
-
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={onJoinClick}
-              className="inline-flex items-center gap-4 bg-black text-white px-10 py-5 rounded-full font-black text-xs md:text-sm tracking-[0.25em] uppercase hover:scale-105 transition-transform shadow-2xl cursor-pointer"
+              className="text-xs font-bold uppercase tracking-widest text-white/70 hover:text-white px-2.5 sm:px-3 py-1.5 transition-colors cursor-pointer"
             >
-              <span>Start Listening</span>
-              <Play size={14} fill="currentColor" className="ml-1" />
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={onJoinClick}
+              className="text-xs font-black uppercase tracking-wider bg-[#FAFF00] text-black px-4 sm:px-5 py-2 rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(250,255,0,0.35)] hover:scale-105 cursor-pointer shrink-0"
+            >
+              Join Free
             </button>
           </div>
-        </FlowSection>
+        </nav>
+      </header>
+
+      {/* 
+        1. HERO SECTION: PRISMA HERO
+        Fullscreen cinematic video background with noise, gradient, and WordsPullUp
+      */}
+      <div id="hero">
+        <PrismaHero onJoinClick={onJoinClick} />
+      </div>
+
+      {/* 
+        2. RECORD LABELS MARQUEE STRIP
+        Smooth infinite horizontal ribbon featuring UMG, SME, WMG & iconic imprints
+      */}
+      <div className="w-full relative overflow-hidden bg-zinc-950/90 border-y border-white/10 py-5 z-20">
+        <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent pointer-events-none z-10" />
+        <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent pointer-events-none z-10" />
+
+        <div className="animate-marquee flex items-center gap-10 sm:gap-14">
+          {[...LABEL_LOGOS, ...LABEL_LOGOS].map((label, idx) => (
+            <div 
+              key={idx} 
+              className="flex items-center gap-3 text-white/60 hover:text-white transition-colors cursor-default select-none shrink-0"
+            >
+              <div className="w-6 h-6 text-[#FAFF00] opacity-80 shrink-0">
+                {label.icon}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold tracking-wider uppercase text-white/90 whitespace-nowrap">
+                  {label.name}
+                </span>
+                <span className="text-[9px] font-medium tracking-widest uppercase text-white/40 whitespace-nowrap">
+                  {label.sub}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 
+        3. STORY SCROLL FLOW PRESENTATION
+        GSAP pinned card transitions with natural title-case typography
+      */}
+      <FlowArt aria-label="Orpheus Story Presentation">
 
         {/* 
-          CHAPTER 02: THE MISSION
-          Pitch Black (#000000) with White & Yellow Accents
+          CHAPTER 01: THE ARCHITECTURE
+          Pitch Black (#000000) with Yellow & White Typography
         */}
-        <FlowSection aria-label="The Architecture" style={{ backgroundColor: "#000000", color: "#ffffff" }}>
+        <FlowSection id="features" aria-label="The Architecture" style={{ backgroundColor: "#000000", color: "#ffffff" }}>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#FAFF00]">02 — The Architecture</p>
-            <span className="text-[10px] font-black uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full text-white/70">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#FAFF00]">01 — The Architecture</p>
+            <span className="text-[10px] font-bold tracking-widest uppercase border border-white/20 px-3 py-1 rounded-full text-white/70">
               Web Audio DSP
             </span>
           </div>
 
           <hr className="my-[1.5vw] border-none border-t border-white/15" />
 
-          <div>
-            <h2 className="text-[clamp(3.5rem,10vw,12rem)] font-normal leading-[0.88] uppercase tracking-tight font-instrument">
-              Analog Soul.
-              <br />
-              <span className="italic text-[#FAFF00]">Digital Speed.</span>
+          <div className="my-auto py-2">
+            <h2 className="text-[clamp(3.5rem,8.5vw,11rem)] font-normal leading-[0.92] tracking-tight font-instrument text-white">
+              Analog soul, <br />
+              <span className="italic text-[#FAFF00]">digital speed.</span>
             </h2>
           </div>
 
           <hr className="my-[1.5vw] border-none border-t border-white/15" />
 
-          <p className="max-w-[50ch] text-[clamp(1rem,2vw,1.6rem)] font-normal leading-relaxed text-white/70 font-geist">
-            Built for listeners who care about fidelity. Zero ads, zero algorithmic bloat — just pristine sound and tactile design.
+          <p className="max-w-[50ch] text-[clamp(1rem,1.8vw,1.5rem)] font-normal leading-relaxed text-white/70 font-geist">
+            Built for listeners who care about fidelity. Zero commercial ads, zero algorithmic bloat — just pristine sound and tactile design.
           </p>
 
           <hr className="my-[1.5vw] border-none border-t border-white/15" />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-[2.5vw] pt-2">
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wider text-[#FAFF00]">24-Bit Audio Pipeline</p>
-              <p className="text-[clamp(0.85rem,1.2vw,1rem)] leading-relaxed text-white/60">
+              <p className="mb-2 text-sm font-bold tracking-wider text-[#FAFF00]">24-Bit Audio Pipeline</p>
+              <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-white/60">
                 Hardware-accelerated Web Audio engine with low-latency buffer scheduling and live stereo visualizer physics.
               </p>
             </div>
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wider text-[#FAFF00]">0ms Client Cache</p>
-              <p className="text-[clamp(0.85rem,1.2vw,1rem)] leading-relaxed text-white/60">
+              <p className="mb-2 text-sm font-bold tracking-wider text-[#FAFF00]">0ms Client Cache</p>
+              <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-white/60">
                 Stale-While-Revalidate persistence reverse-engineered from Spotify. Reopens with instant playback and zero layout shifts.
               </p>
             </div>
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wider text-[#FAFF00]">Tactile Vinyl Mode</p>
-              <p className="text-[clamp(0.85rem,1.2vw,1rem)] leading-relaxed text-white/60">
-                Real-time 33⅓ RPM rotation physics, analog film grain shaders, and dynamic color extraction from artwork.
+              <p className="mb-2 text-sm font-bold tracking-wider text-[#FAFF00]">Tactile Vinyl Mode</p>
+              <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-white/60">
+                Real-time 33⅓ RPM rotation physics, analog film grain shaders, and dynamic color extraction from album sleeves.
               </p>
             </div>
           </div>
         </FlowSection>
 
         {/* 
-          CHAPTER 03: HOW IT WORKS
-          Clean Off-White / Ivory (#F5F0E8) with Black Typography
+          CHAPTER 02: THE CURATION FLOW
+          Warm Ivory (#F5F0E8) with Black Typography
         */}
-        <FlowSection aria-label="How It Works" style={{ backgroundColor: "#F5F0E8", color: "#000000" }}>
+        <FlowSection id="curation" aria-label="The Curation Flow" style={{ backgroundColor: "#F5F0E8", color: "#000000" }}>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.3em]">03 — The Curation Flow</p>
-            <span className="text-[10px] font-black uppercase tracking-widest border border-black/20 px-3 py-1 rounded-full">
-              Beats-Style Vectors
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-black/60">02 — The Curation Flow</p>
+            <span className="text-[10px] font-bold tracking-widest uppercase border border-black/20 px-3 py-1 rounded-full text-black/70">
+              Interactive Vectors
             </span>
           </div>
 
           <hr className="my-[1.5vw] border-none border-t border-black/20" />
 
-          <div>
-            <h2 className="text-[clamp(3.5rem,10vw,12rem)] font-normal leading-[0.88] uppercase tracking-tight font-instrument">
-              Tune In.
-              <br />
-              <span className="italic">Stay Lost.</span>
+          <div className="my-auto py-2">
+            <h2 className="text-[clamp(3.5rem,8.5vw,11rem)] font-normal leading-[0.92] tracking-tight font-instrument text-black">
+              Tune in, <br />
+              <span className="italic">stay lost.</span>
             </h2>
           </div>
 
           <hr className="my-[1.5vw] border-none border-t border-black/20" />
 
-          <p className="max-w-[50ch] text-[clamp(1rem,2vw,1.6rem)] font-normal leading-relaxed text-black/75 font-geist">
+          <p className="max-w-[50ch] text-[clamp(1rem,1.8vw,1.5rem)] font-normal leading-relaxed text-black/75 font-geist">
             Three steps. Zero complexity. Your personal sonic frequency is calibrated the moment you join.
           </p>
 
@@ -270,20 +280,20 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-[2.5vw] pt-2">
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wider">01 — Bubble Calibration</p>
-              <p className="text-[clamp(0.85rem,1.2vw,1rem)] leading-relaxed text-black/70">
+              <p className="mb-2 text-sm font-bold tracking-wider text-black">01 — Bubble Calibration</p>
+              <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-black/70">
                 Tap the genres and 3 artists you love using our interactive floating-bubble physics. No sterile questionnaires.
               </p>
             </div>
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wider">02 — Harmonic Synthesis</p>
-              <p className="text-[clamp(0.85rem,1.2vw,1rem)] leading-relaxed text-black/70">
+              <p className="mb-2 text-sm font-bold tracking-wider text-black">02 — Harmonic Synthesis</p>
+              <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-black/70">
                 Orpheus generates bespoke Daily Mixes, Quick Picks, and atmosphere shelves tailored to your exact taste vector.
               </p>
             </div>
             <div>
-              <p className="mb-2 text-sm font-black uppercase tracking-wider">03 — Infinite Radio</p>
-              <p className="text-[clamp(0.85rem,1.2vw,1rem)] leading-relaxed text-black/70">
+              <p className="mb-2 text-sm font-bold tracking-wider text-black">03 — Infinite Radio</p>
+              <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-black/70">
                 When your queue finishes, our autonomous recommendation pipeline autoplays matching tracks with zero dead air.
               </p>
             </div>
@@ -291,37 +301,36 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
         </FlowSection>
 
         {/* 
-          CHAPTER 04: THE CATALOG & MAJOR LABELS
+          CHAPTER 03: THE CATALOG & MAJOR LABELS
           Deep Cobalt Blue (#1A3DE8) with White Text & SVG Label Logos
         */}
-        <FlowSection aria-label="The Catalog" style={{ backgroundColor: "#1A3DE8", color: "#ffffff" }}>
+        <FlowSection id="catalog" aria-label="The Catalog" style={{ backgroundColor: "#1A3DE8", color: "#ffffff" }}>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#FAFF00]">04 — Global Master Catalog</p>
-            <span className="text-[10px] font-black uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full text-white/80">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#FAFF00]">03 — Global Master Catalog</p>
+            <span className="text-[10px] font-bold tracking-widest uppercase border border-white/20 px-3 py-1 rounded-full text-white/80">
               100M+ Releases
             </span>
           </div>
 
           <hr className="my-[1.5vw] border-none border-t border-white/20" />
 
-          <div>
-            <h2 className="text-[clamp(3.5rem,10vw,12rem)] font-normal leading-[0.88] uppercase tracking-tight font-instrument">
-              The Giants.
-              <br />
-              <span className="italic text-[#FAFF00]">Every Master.</span>
+          <div className="my-auto py-2">
+            <h2 className="text-[clamp(3.5rem,8.5vw,11rem)] font-normal leading-[0.92] tracking-tight font-instrument text-white">
+              The giants, <br />
+              <span className="italic text-[#FAFF00]">every master.</span>
             </h2>
           </div>
 
           <hr className="my-[1.5vw] border-none border-t border-white/20" />
 
-          <p className="max-w-[50ch] text-[clamp(1rem,2vw,1.6rem)] font-normal leading-relaxed text-white/80 font-geist">
+          <p className="max-w-[50ch] text-[clamp(1rem,1.8vw,1.5rem)] font-normal leading-relaxed text-white/80 font-geist">
             Powered by the Big Three music conglomerates and historic recording imprints worldwide.
           </p>
 
           <hr className="my-[1.5vw] border-none border-t border-white/20" />
 
           {/* Graphical SVG Logos Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 py-3">
             {LABEL_LOGOS.map((label, idx) => (
               <div 
                 key={idx}
@@ -330,10 +339,10 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
                 <div className="mb-2 shrink-0">
                   {label.icon}
                 </div>
-                <span className="text-[11px] font-black uppercase tracking-wider leading-tight">
+                <span className="text-[11px] font-bold tracking-wider leading-tight">
                   {label.name}
                 </span>
-                <span className="text-[8px] font-bold uppercase tracking-widest opacity-60 mt-0.5">
+                <span className="text-[8px] font-medium tracking-widest opacity-60 mt-0.5">
                   {label.sub}
                 </span>
               </div>
@@ -342,19 +351,19 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
 
           <hr className="my-[1.5vw] border-none border-t border-white/20" />
 
-          <p className="mt-auto ml-auto max-w-[50ch] text-right text-[clamp(0.9rem,1.5vw,1.25rem)] font-normal text-white/70">
+          <p className="mt-auto ml-auto max-w-[50ch] text-right text-[clamp(0.9rem,1.3vw,1.15rem)] font-normal text-white/70">
             From iconic analog vinyl pressings to high-bitrate digital masters — streamed with zero compromises.
           </p>
         </FlowSection>
 
         {/* 
-          CHAPTER 05: JOIN ORPHEUS
-          Pure Pitch Black (#000000) with Giant Electric Yellow CTA
+          CHAPTER 04: JOIN ORPHEUS
+          Pure Pitch Black (#000000) with Electric Yellow Accent & CTA
         */}
-        <FlowSection aria-label="Join Orpheus" style={{ backgroundColor: "#000000", color: "#ffffff" }}>
+        <FlowSection id="join" aria-label="Join Orpheus" style={{ backgroundColor: "#000000", color: "#ffffff" }}>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#FAFF00]">05 — Launch</p>
-            <span className="text-[10px] font-black uppercase tracking-widest border border-white/20 px-3 py-1 rounded-full text-white/70">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#FAFF00]">04 — Launch</p>
+            <span className="text-[10px] font-bold tracking-widest uppercase border border-white/20 px-3 py-1 rounded-full text-white/70">
               100% Free
             </span>
           </div>
@@ -362,24 +371,23 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
           <hr className="my-[1.5vw] border-none border-t border-white/15" />
 
           <div className="my-auto py-6">
-            <h2 className="text-[clamp(3.5rem,10.5vw,13rem)] font-normal leading-[0.85] uppercase tracking-tight font-instrument">
-              The Needle
-              <br />
-              <span className="italic text-[#FAFF00]">Drops Now.</span>
+            <h2 className="text-[clamp(3.5rem,9.5vw,12rem)] font-normal leading-[0.88] tracking-tight font-instrument text-white">
+              The needle <br />
+              <span className="italic text-[#FAFF00]">drops now.</span>
             </h2>
           </div>
 
           <hr className="my-[1.5vw] border-none border-t border-white/15" />
 
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8 pb-8">
-            <p className="max-w-[45ch] text-[clamp(1rem,2vw,1.75rem)] font-normal leading-relaxed text-white/70 font-geist">
+            <p className="max-w-[45ch] text-[clamp(1rem,1.8vw,1.5rem)] font-normal leading-relaxed text-white/70 font-geist">
               Take back your listening ritual. Join Orpheus today — completely free, zero audio ads, and complete fidelity for the modern listener.
             </p>
 
             <button
               type="button"
               onClick={onJoinClick}
-              className="inline-flex items-center gap-4 bg-[#FAFF00] text-black px-12 py-6 rounded-full font-black text-xs md:text-sm tracking-[0.25em] uppercase hover:bg-white hover:scale-105 transition-all shadow-[0_0_40px_rgba(250,255,0,0.4)] cursor-pointer shrink-0"
+              className="inline-flex items-center gap-4 bg-[#FAFF00] text-black px-12 py-5 rounded-full font-black text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-white hover:scale-105 transition-all shadow-[0_0_40px_rgba(250,255,0,0.4)] cursor-pointer shrink-0"
             >
               <span>Get Started Free</span>
               <ArrowUpRight size={18} />
