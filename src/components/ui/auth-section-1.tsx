@@ -51,7 +51,7 @@ export default function AuthSectionOne({
   };
 
   return (
-    <section className="min-h-screen bg-black p-3 sm:p-6 text-white antialiased font-geist flex items-center justify-center relative z-[100] w-full">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black/95 backdrop-blur-2xl p-4 sm:p-6 text-white antialiased font-geist flex items-center justify-center w-full min-h-screen">
       
       {/* Close button */}
       {onClose && (
@@ -220,7 +220,7 @@ export default function AuthSectionOne({
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }
 
