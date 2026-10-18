@@ -73,44 +73,48 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
       case "curation":
         // Warm Ivory Section
         return {
-          container: "bg-[#F5F0E8]/85 border-black/10 text-black shadow-lg shadow-black/5",
+          container: "bg-[#F5F0E8]/90 border-black/10 text-black shadow-lg shadow-black/5",
           brandText: "text-black",
-          logoBadge: "bg-black text-[#FAFF00]",
+          logoBadge: "bg-[#FAFF00] border border-black/15 shadow-sm",
+          logoInvert: false,
           link: "text-black/60 hover:text-black",
           activeLink: "text-black font-black",
-          cta: "bg-black text-[#FAFF00] hover:bg-zinc-800 shadow-md",
+          cta: "bg-black text-[#FAFF00] hover:bg-zinc-800 shadow-sm",
         };
       case "catalog":
         // Deep Cobalt Blue Section
         return {
-          container: "bg-[#1027a3]/85 border-white/20 text-white shadow-xl shadow-blue-950/40",
+          container: "bg-[#1027a3]/90 border-white/20 text-white shadow-xl shadow-blue-950/40",
           brandText: "text-white",
-          logoBadge: "bg-[#FAFF00] text-black",
+          logoBadge: "bg-[#FAFF00] shadow-sm",
+          logoInvert: false,
           link: "text-white/70 hover:text-[#FAFF00]",
           activeLink: "text-[#FAFF00] font-black",
-          cta: "bg-[#FAFF00] text-black hover:bg-white shadow-[0_0_20px_rgba(250,255,0,0.35)]",
+          cta: "bg-[#FAFF00] text-black hover:bg-white shadow-sm",
         };
       case "footer":
         // Electric Yellow Section
         return {
-          container: "bg-[#e5eb00]/90 border-black/15 text-black shadow-lg shadow-black/5",
+          container: "bg-[#e5eb00]/95 border-black/15 text-black shadow-lg shadow-black/5",
           brandText: "text-black",
-          logoBadge: "bg-black text-[#FAFF00]",
+          logoBadge: "bg-black border border-black/20 shadow-sm",
+          logoInvert: true,
           link: "text-black/70 hover:text-black",
           activeLink: "text-black font-black",
-          cta: "bg-black text-[#FAFF00] hover:bg-zinc-800 shadow-md",
+          cta: "bg-black text-[#FAFF00] hover:bg-zinc-800 shadow-sm",
         };
       case "hero":
       case "features":
       default:
         // Dark/Obsidian Sections
         return {
-          container: "bg-zinc-950/80 border-white/10 text-white shadow-2xl shadow-black/80",
+          container: "bg-zinc-950/85 border-white/10 text-white shadow-2xl shadow-black/80",
           brandText: "text-white",
-          logoBadge: "bg-[#FAFF00] text-black",
+          logoBadge: "bg-[#FAFF00] shadow-sm",
+          logoInvert: false,
           link: "text-white/60 hover:text-[#FAFF00]",
           activeLink: "text-[#FAFF00] font-black",
-          cta: "bg-[#FAFF00] text-black hover:bg-white shadow-[0_0_20px_rgba(250,255,0,0.35)]",
+          cta: "bg-[#FAFF00] text-black hover:bg-white shadow-sm",
         };
     }
   }, [activeSection]);
@@ -123,6 +127,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
         - Collapses into a sleek compact pill when scrolled
         - Adapts color palette to match the section in view (White on Ivory, Blue on Blue, Yellow on Yellow, Dark on Black)
         - Only displays "Join Free" (no sign in button)
+        - Perfectly nested so button never bleeds outside the pill
       */}
       <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out ${
         isScrolled ? "w-auto max-w-[92vw]" : "w-[94%] max-w-4xl"
@@ -130,12 +135,18 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
         <nav className={`flex items-center justify-between rounded-full border backdrop-blur-xl transition-all duration-300 ease-out ${
           navTheme.container
         } ${
-          isScrolled ? "px-3 sm:px-5 py-1.5 gap-4 sm:gap-6" : "px-4 sm:px-7 py-2.5 gap-6"
+          isScrolled ? "p-1.5 pl-3 sm:pl-4 pr-1.5 gap-3 sm:gap-6" : "p-2 pl-4 sm:pl-6 pr-2 gap-6"
         }`}>
           {/* Brand Logo with dynamic badge */}
           <a href="#hero" className="flex items-center gap-2.5 group shrink-0">
-            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center p-1.5 shadow-md group-hover:scale-105 transition-transform shrink-0 ${navTheme.logoBadge}`}>
-              <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={18} height={18} className="object-contain" />
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center p-1.5 transition-transform group-hover:scale-105 shrink-0 ${navTheme.logoBadge}`}>
+              <Image 
+                src="/logo-trimmed.png" 
+                alt="Orpheus Logo" 
+                width={18} 
+                height={18} 
+                className={`object-contain ${navTheme.logoInvert ? "brightness-0 invert" : ""}`} 
+              />
             </div>
             <span className={`text-xs sm:text-sm font-black tracking-[0.22em] uppercase font-geist transition-colors ${navTheme.brandText} ${isScrolled ? "hidden sm:inline-block" : ""}`}>
               Orpheus
@@ -155,8 +166,8 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             <button
               type="button"
               onClick={onJoinClick}
-              className={`text-xs font-black uppercase tracking-wider rounded-full transition-all hover:scale-105 cursor-pointer shrink-0 ${navTheme.cta} ${
-                isScrolled ? "px-3.5 py-1.5 text-[11px]" : "px-4 sm:px-5 py-2"
+              className={`font-black uppercase tracking-wider rounded-full transition-all hover:scale-105 cursor-pointer shrink-0 ${navTheme.cta} ${
+                isScrolled ? "px-3.5 py-1 text-[11px]" : "px-5 py-2 text-xs"
               }`}
             >
               Join Free
@@ -336,22 +347,20 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
 
           <hr className="my-[1.5vw] border-none border-t border-white/20" />
 
-          {/* Authentic Vector Logos Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 py-3">
+          {/* Authentic Vector Logos Grid - Logos Only, No Text */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 py-4">
             {OFFICIAL_LABELS.slice(0, 6).map((label, idx) => (
               <div 
                 key={idx}
-                className="flex flex-col items-center justify-center h-28 p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 text-center group hover:bg-white transition-all cursor-default"
+                className="flex items-center justify-center h-24 p-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 group hover:bg-white transition-all cursor-default"
+                title={label.name}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
                   src={label.file} 
                   alt={label.name} 
-                  className="h-8 max-h-8 w-auto max-w-[100px] object-contain brightness-0 invert group-hover:invert-0 transition-all opacity-80 group-hover:opacity-100" 
+                  className="h-8 md:h-9 max-h-9 w-auto max-w-[110px] object-contain brightness-0 invert group-hover:invert-0 transition-all opacity-80 group-hover:opacity-100" 
                 />
-                <span className="text-[10px] font-bold tracking-wider mt-3 text-white/70 group-hover:text-black transition-colors truncate w-full">
-                  {label.name}
-                </span>
               </div>
             ))}
           </div>
@@ -380,7 +389,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
           <div className="my-auto py-2">
             <div className="flex items-center gap-3.5 mb-3">
               <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center p-2 shadow-xl shrink-0">
-                <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={22} height={22} className="object-contain" />
+                <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={22} height={22} className="object-contain brightness-0 invert" />
               </div>
               <span className="text-xl font-black uppercase tracking-[0.25em] text-black">
                 Orpheus
