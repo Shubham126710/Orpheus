@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { GrainGradient } from "@paper-design/shaders-react";
 import { 
   Play, 
   Disc3, 
@@ -12,8 +13,6 @@ import {
   Volume2, 
   ChevronDown, 
   ArrowUpRight, 
-  ShieldCheck, 
-  Radio, 
   Check 
 } from "lucide-react";
 import ScrollIndex from "@/components/kokonutui/scroll-index";
@@ -22,18 +21,92 @@ interface LandingPageProps {
   onJoinClick: () => void;
 }
 
-const RECORD_LABELS = [
-  { name: "UNIVERSAL MUSIC GROUP", abbrev: "UMG", detail: "Global Music Leader" },
-  { name: "SONY MUSIC ENTERTAINMENT", abbrev: "SME", detail: "Historic Master Catalog" },
-  { name: "WARNER MUSIC GROUP", abbrev: "WMG", detail: "Pioneer Recordings" },
-  { name: "INTERSCOPE GEFFEN A&M", abbrev: "IGA", detail: "Universal Music Group" },
-  { name: "COLUMBIA RECORDS", abbrev: "COLUMBIA", detail: "Sony Music Entertainment" },
-  { name: "ATLANTIC RECORDS", abbrev: "ATLANTIC", detail: "Warner Music Group" },
-  { name: "REPUBLIC RECORDS", abbrev: "REPUBLIC", detail: "Universal Music Group" },
-  { name: "RCA RECORDS", abbrev: "RCA", detail: "Sony Music Entertainment" },
-  { name: "DEF JAM RECORDINGS", abbrev: "DEF JAM", detail: "Universal Music Group" },
-  { name: "WARNER RECORDS", abbrev: "WARNER", detail: "Warner Music Group" },
-  { name: "EPIC RECORDS", abbrev: "EPIC", detail: "Sony Music Entertainment" }
+// Authentic SVG vector logos for major record labels
+const LABEL_LOGOS = [
+  {
+    name: "UNIVERSAL MUSIC GROUP",
+    sub: "UMG",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-[#FAFF00]" aria-hidden="true">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" />
+        <ellipse cx="50" cy="50" rx="45" ry="18" fill="none" stroke="currentColor" strokeWidth="5" />
+        <line x1="5" y1="50" x2="95" y2="50" stroke="currentColor" strokeWidth="5" />
+        <line x1="50" y1="5" x2="50" y2="95" stroke="currentColor" strokeWidth="5" />
+      </svg>
+    )
+  },
+  {
+    name: "SONY MUSIC",
+    sub: "ENTERTAINMENT",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-white" aria-hidden="true">
+        <path d="M20 75 C 35 25, 65 25, 80 75 C 65 55, 35 55, 20 75 Z" fill="#FAFF00" />
+        <circle cx="50" cy="30" r="12" fill="currentColor" />
+      </svg>
+    )
+  },
+  {
+    name: "WARNER MUSIC GROUP",
+    sub: "WMG",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-[#FAFF00]" aria-hidden="true">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" />
+        <path d="M25 35 L 35 68 L 50 45 L 65 68 L 75 35" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )
+  },
+  {
+    name: "COLUMBIA RECORDS",
+    sub: "EST. 1887",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-white" aria-hidden="true">
+        <ellipse cx="50" cy="50" rx="45" ry="25" fill="none" stroke="currentColor" strokeWidth="7" />
+        <circle cx="50" cy="50" r="14" fill="#FAFF00" />
+        <circle cx="50" cy="50" r="6" fill="black" />
+      </svg>
+    )
+  },
+  {
+    name: "DEF JAM RECORDINGS",
+    sub: "NYC 1984",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-[#FAFF00]" aria-hidden="true">
+        <rect x="18" y="25" width="28" height="50" rx="4" fill="none" stroke="currentColor" strokeWidth="8" />
+        <path d="M60 25 L 82 25 L 82 60 C 82 72, 70 75, 60 75 C 50 75, 48 68, 48 68" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+      </svg>
+    )
+  },
+  {
+    name: "ATLANTIC RECORDS",
+    sub: "WARNER",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-white" aria-hidden="true">
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#FAFF00" strokeWidth="6" />
+        <path d="M30 72 L 50 25 L 70 72 M 36 58 L 64 58" fill="none" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+      </svg>
+    )
+  },
+  {
+    name: "INTERSCOPE GEFFEN A&M",
+    sub: "UNIVERSAL",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-[#FAFF00]" aria-hidden="true">
+        <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="6" />
+        <circle cx="50" cy="50" r="28" fill="none" stroke="currentColor" strokeWidth="6" />
+        <circle cx="50" cy="50" r="12" fill="#FAFF00" />
+      </svg>
+    )
+  },
+  {
+    name: "REPUBLIC RECORDS",
+    sub: "UNIVERSAL",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-7 h-7 fill-current text-white" aria-hidden="true">
+        <rect x="15" y="15" width="70" height="70" rx="14" fill="none" stroke="#FAFF00" strokeWidth="6" />
+        <path d="M35 70 L 35 30 L 55 30 C 65 30, 68 38, 68 45 C 68 52, 62 56, 52 56 L 35 56 M 52 56 L 68 70" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )
+  }
 ];
 
 const FAQS = [
@@ -63,74 +136,103 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <div className="flex flex-col w-full min-h-screen bg-black text-white relative selection:bg-[#FAFF00] selection:text-black font-geist overflow-x-hidden">
+    <div className="flex flex-col w-full min-h-screen bg-black text-white relative selection:bg-[#FAFF00] selection:text-black font-geist">
 
-      {/* Persistent Premium Sticky Header */}
-      <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-black/75 border-b border-white/[0.08] transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
-          
-          {/* Authentic Brand Logo */}
-          <div className="flex items-center gap-3.5 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white/5 border border-white/10 flex items-center justify-center p-1.5 shadow-md group-hover:border-[#FAFF00]/50 transition-colors">
-              <Image 
-                src="/logo-trimmed.png" 
-                alt="Orpheus Lyre Emblem" 
-                fill
-                className="object-contain p-1"
-                priority
-              />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-geist font-black tracking-[0.25em] uppercase text-white leading-none">
-                Orpheus
-              </span>
-              <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-white/40 mt-1">
-                Audio Client
-              </span>
-            </div>
+      {/* 
+        PERSISTENT CURVED FLOATING NAVBAR 
+        Fixed with rounded-full pill geometry that persists across all scroll depths
+      */}
+      <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-5xl rounded-full bg-zinc-950/85 backdrop-blur-2xl border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.9)] px-5 md:px-8 py-3.5 flex items-center justify-between transition-all duration-300">
+        
+        {/* Authentic Golden Yellow Circular Logo */}
+        <div 
+          className="flex items-center gap-3 cursor-pointer group select-none" 
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
+          <div className="w-9 h-9 rounded-full bg-[#FAFF00] flex items-center justify-center p-1.5 shadow-[0_0_20px_rgba(250,255,0,0.5)] group-hover:scale-105 transition-transform">
+            <Image 
+              src="/logo-trimmed.png" 
+              alt="Orpheus Lyre Emblem" 
+              width={22} 
+              height={22} 
+              className="object-contain"
+              priority
+            />
           </div>
-
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-bold tracking-[0.2em] uppercase text-white/60">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#labels" className="hover:text-white transition-colors">Catalog</a>
-            <a href="#palette" className="hover:text-white transition-colors">Aesthetic</a>
-            <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
-          </nav>
-
-          {/* Action CTAs */}
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={onJoinClick}
-              className="text-xs font-bold tracking-widest uppercase text-white/80 hover:text-white px-4 py-2 transition-colors"
-            >
-              Sign In
-            </button>
-            <button 
-              onClick={onJoinClick}
-              className="text-xs font-black tracking-[0.2em] uppercase bg-[#FAFF00] text-black px-6 py-2.5 rounded-full hover:bg-white transition-all duration-300 shadow-[0_0_20px_rgba(250,255,0,0.25)] hover:scale-105"
-            >
-              Join Free
-            </button>
+          <div className="flex flex-col">
+            <span className="text-lg font-black tracking-[0.25em] uppercase text-white leading-none">
+              Orpheus
+            </span>
+            <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-white/40 mt-0.5">
+              Audio Client
+            </span>
           </div>
-
         </div>
+
+        {/* Clean Center Navigation */}
+        <nav className="hidden md:flex items-center gap-8 text-[11px] font-bold tracking-[0.2em] uppercase text-white/60">
+          <a href="#features" className="hover:text-white transition-colors">Features</a>
+          <a href="#labels" className="hover:text-white transition-colors">Catalog</a>
+          <a href="#palette" className="hover:text-white transition-colors">Aesthetic</a>
+          <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
+        </nav>
+
+        {/* Action CTAs */}
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={onJoinClick}
+            className="text-xs font-bold tracking-widest uppercase text-white/80 hover:text-white px-4 py-2 transition-colors"
+          >
+            Sign In
+          </button>
+          <button 
+            onClick={onJoinClick}
+            className="text-xs font-black tracking-[0.2em] uppercase bg-[#FAFF00] text-black px-6 py-2.5 rounded-full hover:bg-white transition-all duration-300 shadow-[0_0_20px_rgba(250,255,0,0.3)] hover:scale-105"
+          >
+            Join Free
+          </button>
+        </div>
+
       </header>
 
       {/* Kokonut UI ScrollIndex Rail (Window Scroller) */}
       <ScrollIndex selector="h2" scroller="window">
         
-        {/* SECTION 1: HERO */}
-        <section className="relative w-full min-h-[85vh] flex flex-col items-center justify-center px-6 pt-16 md:pt-24 pb-20 max-w-6xl mx-auto text-center">
+        {/* SECTION 1: HERO WITH GRAIN GRADIENT SHADER & MUSIC CHARACTER */}
+        <section className="relative w-full min-h-screen flex flex-col items-center justify-center px-6 pt-36 pb-20 max-w-6xl mx-auto text-center overflow-hidden">
           
-          {/* Subtle Status Pill */}
+          {/* Paper Design Grain Shader Background (Warm & Analog) */}
+          <div className="absolute inset-0 z-0 pointer-events-none opacity-30 mix-blend-screen overflow-hidden">
+            <GrainGradient
+              speed={0.6}
+              scale={1.3}
+              rotation={30}
+              offsetX={0}
+              offsetY={0}
+              softness={0.7}
+              intensity={0.45}
+              noise={0.35}
+              shape="corners"
+              frame={1200}
+              colors={["#FAFF00", "#FF6B00", "#111111", "#000000"]}
+              colorBack="#00000000"
+              className="w-full h-full"
+            />
+          </div>
+
+          {/* Subtle Concentric Vinyl Groove Lines */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border border-white/[0.04] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-white/[0.03] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] rounded-full border border-white/[0.02] pointer-events-none" />
+
+          {/* Status Badge */}
           <motion.div 
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 mb-8"
+            className="relative z-10 inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-zinc-900/80 border border-white/10 mb-8 backdrop-blur-md"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FAFF00]" />
-            <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/80">
+            <span className="w-2 h-2 rounded-full bg-[#FAFF00] shadow-[0_0_8px_#FAFF00]" />
+            <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-white/90">
               The Next Era of Audio • Cinematic Streaming
             </span>
           </motion.div>
@@ -140,10 +242,10 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-5xl sm:text-7xl md:text-9xl font-instrument font-normal tracking-tight leading-[1.05] text-white max-w-5xl mb-8"
+            className="relative z-10 text-5xl sm:text-7xl md:text-9xl font-instrument font-normal tracking-tight leading-[1.05] text-white max-w-5xl mb-8"
           >
             Experience music, <br/>
-            <span className="italic text-white/80 font-instrument">
+            <span className="italic text-[#FAFF00] font-instrument drop-shadow-[0_0_35px_rgba(250,255,0,0.2)]">
               cinematically.
             </span>
           </motion.h2>
@@ -153,7 +255,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-base sm:text-lg md:text-xl text-white/50 font-geist max-w-2xl mb-12 leading-relaxed font-normal"
+            className="relative z-10 text-base sm:text-lg md:text-xl text-white/60 font-geist max-w-2xl mb-12 leading-relaxed font-normal"
           >
             A high-performance streaming client bridging modern liquid interfaces, intelligent taste curation, and nostalgic analog warmth.
           </motion.p>
@@ -163,11 +265,11 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center gap-4 mb-20"
+            className="relative z-10 flex flex-col sm:flex-row items-center gap-4 mb-20"
           >
             <button 
               onClick={onJoinClick}
-              className="group relative flex items-center justify-center gap-4 bg-[#FAFF00] text-black px-10 py-5 rounded-full overflow-hidden hover:bg-white transition-all duration-300 shadow-[0_0_35px_rgba(250,255,0,0.3)] hover:scale-105"
+              className="group relative flex items-center justify-center gap-4 bg-[#FAFF00] text-black px-10 py-5 rounded-full overflow-hidden hover:bg-white transition-all duration-300 shadow-[0_0_35px_rgba(250,255,0,0.35)] hover:scale-105"
             >
               <span className="text-xs md:text-sm font-black tracking-[0.2em] uppercase">Start Listening</span>
               <div className="w-7 h-7 rounded-full bg-black flex items-center justify-center text-white">
@@ -188,7 +290,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.4 }}
-            className="w-full max-w-4xl p-6 md:p-8 rounded-3xl bg-zinc-950 border border-white/10 shadow-2xl relative"
+            className="relative z-10 w-full max-w-4xl p-6 md:p-8 rounded-3xl bg-zinc-950/90 border border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.9)] backdrop-blur-xl"
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
               
@@ -206,7 +308,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
                 </div>
               </div>
 
-              {/* Minimal Spectrum */}
+              {/* Web Audio Spectrum Equalizer */}
               <div className="flex flex-col justify-center items-center p-4 rounded-2xl bg-black border border-white/5 h-full">
                 <div className="flex items-end gap-1.5 h-10 mb-2">
                   {[40, 80, 50, 100, 70, 90, 60, 85, 45, 95, 65, 80, 50].map((h, i) => (
@@ -223,7 +325,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
                 </span>
               </div>
 
-              {/* Latency & Cache Stats */}
+              {/* Response Time & Architecture */}
               <div className="flex flex-col justify-center p-4 rounded-2xl bg-black border border-white/5 text-left h-full">
                 <span className="text-[10px] font-bold text-[#FAFF00] uppercase tracking-widest block">Response Time</span>
                 <h4 className="text-2xl font-black text-white uppercase">0ms Ready</h4>
@@ -235,37 +337,41 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
 
         </section>
 
-        {/* SECTION 2: RECORD LABELS (MARQUEE) */}
+        {/* SECTION 2: RECORD LABELS (MARQUEE WITH ACTUAL SVG LOGOS) */}
         <section id="labels" className="w-full py-16 border-y border-white/[0.08] bg-black relative">
-          <div className="max-w-7xl mx-auto px-6 md:px-12 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-2">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-2">
             <h2 className="text-xs font-bold tracking-[0.3em] uppercase text-white/50 flex items-center gap-2">
               <Disc3 size={15} className="text-[#FAFF00]" />
               Master Catalog & Major Labels
             </h2>
             <span className="text-xs font-bold tracking-[0.2em] uppercase text-white/40">
-              Universal Music • Sony Music • Warner Music
+              Universal Music Group • Sony Music • Warner Music Group
             </span>
           </div>
 
-          {/* Monochrome Luxury Marquee */}
-          <div className="flex overflow-hidden select-none py-3">
+          {/* Marquee with Graphical SVG Logos */}
+          <div className="flex overflow-hidden select-none py-2">
             <motion.div 
               animate={{ x: ["0%", "-50%"] }}
-              transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
-              className="flex items-center gap-6 md:gap-8 shrink-0"
+              transition={{ repeat: Infinity, duration: 32, ease: "linear" }}
+              className="flex items-center gap-8 md:gap-12 shrink-0"
             >
-              {[...RECORD_LABELS, ...RECORD_LABELS].map((label, idx) => (
+              {[...LABEL_LOGOS, ...LABEL_LOGOS].map((label, idx) => (
                 <div 
                   key={idx}
-                  className="flex items-center gap-3.5 px-6 py-3.5 rounded-xl bg-zinc-950 border border-white/10 hover:border-[#FAFF00]/50 transition-colors cursor-default"
+                  className="flex items-center gap-4 px-7 py-4 rounded-2xl bg-zinc-950 border border-white/10 hover:border-[#FAFF00]/50 transition-colors cursor-default"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FAFF00]" />
-                  <span className="text-xs md:text-sm font-black tracking-[0.2em] uppercase text-white">
-                    {label.name}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/40 border-l border-white/10 pl-3">
-                    {label.abbrev}
-                  </span>
+                  <div className="shrink-0">
+                    {label.icon}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs md:text-sm font-black tracking-[0.2em] uppercase text-white">
+                      {label.name}
+                    </span>
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-white/40">
+                      {label.sub}
+                    </span>
+                  </div>
                 </div>
               ))}
             </motion.div>
@@ -281,7 +387,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             </span>
             <h2 className="text-4xl md:text-6xl font-instrument font-normal tracking-tight text-white">
               Tactile by design. <br/>
-              <span className="italic text-white/80 font-instrument">
+              <span className="italic text-[#FAFF00] font-instrument">
                 Engineered for sound purity.
               </span>
             </h2>
@@ -507,8 +613,8 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
         <footer className="w-full border-t border-white/[0.08] py-10 px-6 text-xs text-white/40 uppercase tracking-widest font-bold">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 relative">
-                <Image src="/logo-trimmed.png" alt="Orpheus Logo" fill className="object-contain" />
+              <div className="w-7 h-7 rounded-full bg-[#FAFF00] flex items-center justify-center p-1">
+                <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={16} height={16} className="object-contain" />
               </div>
               <span>© 2026 Orpheus Audio Inc.</span>
             </div>
