@@ -36,34 +36,44 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
   const [activeSection, setActiveSection] = useState<"hero" | "features" | "curation" | "catalog" | "footer">("hero");
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    const updateActiveSection = () => {
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 40);
 
-    // Section Observer to dynamically synchronize navbar colors with the section in view
-    const sectionIds = ["hero", "features", "curation", "catalog", "footer"];
-    const observers: IntersectionObserver[] = [];
+      // In a stacked GSAP pinned presentation, higher sections layer on top with higher zIndex.
+      // We check sections in top-to-bottom visual stacking order: footer -> catalog -> curation -> features.
+      const sections: Array<"footer" | "catalog" | "curation" | "features"> = [
+        "footer",
+        "catalog",
+        "curation",
+        "features",
+      ];
 
-    sectionIds.forEach((id) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const obs = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setActiveSection(id as any);
+      const navY = 100; // Directly beneath the floating navbar
+
+      for (const id of sections) {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          // If the section top has reached or passed the navbar level and bottom is still below
+          if (rect.top <= navY && rect.bottom > navY) {
+            setActiveSection(id);
+            return;
           }
-        },
-        { threshold: 0.25, rootMargin: "-15% 0px -40% 0px" }
-      );
-      obs.observe(el);
-      observers.push(obs);
-    });
+        }
+      }
+
+      // Default to hero if none of the pinned cards are currently beneath the navbar
+      setActiveSection("hero");
+    };
+
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection, { passive: true });
+    updateActiveSection();
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      observers.forEach((obs) => obs.disconnect());
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
     };
   }, []);
 
@@ -71,12 +81,12 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
   const navTheme = useMemo(() => {
     switch (activeSection) {
       case "curation":
-        // Warm Ivory Section
+        // Warm Ivory Section (Monochromatic black badge with white inverted lyre)
         return {
           container: "bg-[#F5F0E8]/90 border-black/10 text-black shadow-lg shadow-black/5",
           brandText: "text-black",
-          logoBadge: "bg-[#FAFF00] border border-black/15 shadow-sm",
-          logoInvert: false,
+          logoBadge: "bg-black shadow-sm",
+          logoInvert: true,
           link: "text-black/60 hover:text-black",
           activeLink: "text-black font-black",
           cta: "bg-black text-[#FAFF00] hover:bg-zinc-800 shadow-sm",
@@ -127,15 +137,15 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
         - Collapses into a sleek compact pill when scrolled
         - Adapts color palette to match the section in view (White on Ivory, Blue on Blue, Yellow on Yellow, Dark on Black)
         - Only displays "Join Free" (no sign in button)
-        - Perfectly nested so button never bleeds outside the pill
+        - Overflow hidden & proper inset padding so button never bleeds outside the pill
       */}
       <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out ${
         isScrolled ? "w-auto max-w-[92vw]" : "w-[94%] max-w-4xl"
       }`}>
-        <nav className={`flex items-center justify-between rounded-full border backdrop-blur-xl transition-all duration-300 ease-out ${
+        <nav className={`flex items-center justify-between rounded-full border backdrop-blur-xl transition-all duration-300 ease-out overflow-hidden ${
           navTheme.container
         } ${
-          isScrolled ? "p-1.5 pl-3 sm:pl-4 pr-1.5 gap-3 sm:gap-6" : "p-2 pl-4 sm:pl-6 pr-2 gap-6"
+          isScrolled ? "py-1.5 pl-3.5 sm:pl-4 pr-2 gap-3 sm:gap-6" : "py-2 pl-4 sm:pl-6 pr-2.5 gap-6"
         }`}>
           {/* Brand Logo with dynamic badge */}
           <a href="#hero" className="flex items-center gap-2.5 group shrink-0">
@@ -167,7 +177,7 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
               type="button"
               onClick={onJoinClick}
               className={`font-black uppercase tracking-wider rounded-full transition-all hover:scale-105 cursor-pointer shrink-0 ${navTheme.cta} ${
-                isScrolled ? "px-3.5 py-1 text-[11px]" : "px-5 py-2 text-xs"
+                isScrolled ? "px-3.5 py-1 text-[11px]" : "px-4 sm:px-5 py-1.5 text-xs"
               }`}
             >
               Join Free
