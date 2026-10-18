@@ -35,7 +35,7 @@ export const FlowSection: React.FC<FlowSectionProps> = ({
     <div
       data-flow-inner
       className={cx(
-        'flow-art-container relative flex min-h-screen w-full flex-col justify-between gap-6 px-[4vw] pt-[clamp(4rem,10vw,6vw)] pb-[4vw]',
+        'flow-art-container relative flex min-h-screen w-full flex-col justify-between gap-6 px-[5vw] pt-28 sm:pt-32 md:pt-36 pb-12',
         'will-change-transform',
       )}
       style={{ transformOrigin: 'bottom left', ...style }}
@@ -79,6 +79,7 @@ const FlowArt: React.FC<FlowArtProps> = ({
       if (sections.length === 0) return;
 
       const triggers: ScrollTrigger[] = [];
+      const isMobile = window.innerWidth < 768;
 
       sections.forEach((section, i) => {
         gsap.set(section, { zIndex: i + 1 });
@@ -87,15 +88,20 @@ const FlowArt: React.FC<FlowArtProps> = ({
         if (!inner) return;
 
         if (i > 0) {
-          gsap.set(inner, { rotation: 30, transformOrigin: 'bottom left' });
+          gsap.set(inner, { 
+            rotation: isMobile ? 10 : 20, 
+            yPercent: isMobile ? 12 : 0,
+            transformOrigin: 'bottom left' 
+          });
           const tween = gsap.to(inner, {
             rotation: 0,
-            ease: 'none',
+            yPercent: 0,
+            ease: 'power1.out',
             scrollTrigger: {
               trigger: section,
               start: 'top bottom',
-              end: 'top 25%',
-              scrub: true,
+              end: 'top 20%',
+              scrub: 0.6,
             },
           });
           if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);

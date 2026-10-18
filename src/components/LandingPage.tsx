@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { 
   Play, 
@@ -32,47 +32,132 @@ const OFFICIAL_LABELS = [
 ];
 
 export default function LandingPage({ onJoinClick }: LandingPageProps) {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState<"hero" | "features" | "curation" | "catalog" | "footer">("hero");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    // Section Observer to dynamically synchronize navbar colors with the section in view
+    const sectionIds = ["hero", "features", "curation", "catalog", "footer"];
+    const observers: IntersectionObserver[] = [];
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setActiveSection(id as any);
+          }
+        },
+        { threshold: 0.25, rootMargin: "-15% 0px -40% 0px" }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      observers.forEach((obs) => obs.disconnect());
+    };
+  }, []);
+
+  // Adaptive theme values based on the active section background
+  const navTheme = useMemo(() => {
+    switch (activeSection) {
+      case "curation":
+        // Warm Ivory Section
+        return {
+          container: "bg-[#F5F0E8]/85 border-black/10 text-black shadow-lg shadow-black/5",
+          brandText: "text-black",
+          logoBadge: "bg-black text-[#FAFF00]",
+          link: "text-black/60 hover:text-black",
+          activeLink: "text-black font-black",
+          cta: "bg-black text-[#FAFF00] hover:bg-zinc-800 shadow-md",
+        };
+      case "catalog":
+        // Deep Cobalt Blue Section
+        return {
+          container: "bg-[#1027a3]/85 border-white/20 text-white shadow-xl shadow-blue-950/40",
+          brandText: "text-white",
+          logoBadge: "bg-[#FAFF00] text-black",
+          link: "text-white/70 hover:text-[#FAFF00]",
+          activeLink: "text-[#FAFF00] font-black",
+          cta: "bg-[#FAFF00] text-black hover:bg-white shadow-[0_0_20px_rgba(250,255,0,0.35)]",
+        };
+      case "footer":
+        // Electric Yellow Section
+        return {
+          container: "bg-[#e5eb00]/90 border-black/15 text-black shadow-lg shadow-black/5",
+          brandText: "text-black",
+          logoBadge: "bg-black text-[#FAFF00]",
+          link: "text-black/70 hover:text-black",
+          activeLink: "text-black font-black",
+          cta: "bg-black text-[#FAFF00] hover:bg-zinc-800 shadow-md",
+        };
+      case "hero":
+      case "features":
+      default:
+        // Dark/Obsidian Sections
+        return {
+          container: "bg-zinc-950/80 border-white/10 text-white shadow-2xl shadow-black/80",
+          brandText: "text-white",
+          logoBadge: "bg-[#FAFF00] text-black",
+          link: "text-white/60 hover:text-[#FAFF00]",
+          activeLink: "text-[#FAFF00] font-black",
+          cta: "bg-[#FAFF00] text-black hover:bg-white shadow-[0_0_20px_rgba(250,255,0,0.35)]",
+        };
+    }
+  }, [activeSection]);
+
   return (
     <div className="relative w-full bg-black text-white font-geist selection:bg-[#FAFF00] selection:text-black">
 
       {/* 
-        PERSISTENT CURVED NOTCH NAVBAR
-        Persists gracefully when scrolling, rounded corners, branded logo badge & quick actions
+        ADAPTIVE COLLAPSING CURVED NOTCH NAVBAR
+        - Collapses into a sleek compact pill when scrolled
+        - Adapts color palette to match the section in view (White on Ivory, Blue on Blue, Yellow on Yellow, Dark on Black)
+        - Only displays "Join Free" (no sign in button)
       */}
-      <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-4xl">
-        <nav className="flex items-center justify-between rounded-full bg-zinc-950/85 border border-white/10 px-4 sm:px-7 py-2.5 shadow-[0_12px_45px_rgba(0,0,0,0.85)] backdrop-blur-xl">
-          {/* Brand Logo with exact yellow circular badge */}
-          <a href="#hero" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-full bg-[#FAFF00] flex items-center justify-center p-1.5 shadow-[0_0_15px_rgba(250,255,0,0.4)] group-hover:scale-105 transition-transform shrink-0">
-              <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={20} height={20} className="object-contain" />
+      <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out ${
+        isScrolled ? "w-auto max-w-[92vw]" : "w-[94%] max-w-4xl"
+      }`}>
+        <nav className={`flex items-center justify-between rounded-full border backdrop-blur-xl transition-all duration-300 ease-out ${
+          navTheme.container
+        } ${
+          isScrolled ? "px-3 sm:px-5 py-1.5 gap-4 sm:gap-6" : "px-4 sm:px-7 py-2.5 gap-6"
+        }`}>
+          {/* Brand Logo with dynamic badge */}
+          <a href="#hero" className="flex items-center gap-2.5 group shrink-0">
+            <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center p-1.5 shadow-md group-hover:scale-105 transition-transform shrink-0 ${navTheme.logoBadge}`}>
+              <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={18} height={18} className="object-contain" />
             </div>
-            <span className="text-sm font-black tracking-[0.22em] uppercase text-white font-geist">
+            <span className={`text-xs sm:text-sm font-black tracking-[0.22em] uppercase font-geist transition-colors ${navTheme.brandText} ${isScrolled ? "hidden sm:inline-block" : ""}`}>
               Orpheus
             </span>
           </a>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-7">
-            <a href="#features" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Architecture</a>
-            <a href="#curation" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Curation</a>
-            <a href="#catalog" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Catalog</a>
-            <a href="#join" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Launch</a>
-            <a href="#footer" className="text-xs font-bold uppercase tracking-widest text-white/60 hover:text-[#FAFF00] transition-colors">Colophon</a>
+          <div className="hidden sm:flex items-center gap-4 md:gap-7">
+            <a href="#features" className={`text-xs uppercase tracking-widest transition-colors ${activeSection === "features" ? navTheme.activeLink : navTheme.link}`}>Architecture</a>
+            <a href="#curation" className={`text-xs uppercase tracking-widest transition-colors ${activeSection === "curation" ? navTheme.activeLink : navTheme.link}`}>Curation</a>
+            <a href="#catalog" className={`text-xs uppercase tracking-widest transition-colors ${activeSection === "catalog" ? navTheme.activeLink : navTheme.link}`}>Catalog</a>
+            <a href="#footer" className={`text-xs uppercase tracking-widest transition-colors ${activeSection === "footer" ? navTheme.activeLink : navTheme.link}`}>Colophon</a>
           </div>
 
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right Action Button: ONLY Join Free */}
+          <div className="flex items-center shrink-0">
             <button
               type="button"
               onClick={onJoinClick}
-              className="text-xs font-bold uppercase tracking-widest text-white/70 hover:text-white px-2.5 sm:px-3 py-1.5 transition-colors cursor-pointer"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={onJoinClick}
-              className="text-xs font-black uppercase tracking-wider bg-[#FAFF00] text-black px-4 sm:px-5 py-2 rounded-full hover:bg-white transition-all shadow-[0_0_20px_rgba(250,255,0,0.35)] hover:scale-105 cursor-pointer shrink-0"
+              className={`text-xs font-black uppercase tracking-wider rounded-full transition-all hover:scale-105 cursor-pointer shrink-0 ${navTheme.cta} ${
+                isScrolled ? "px-3.5 py-1.5 text-[11px]" : "px-4 sm:px-5 py-2"
+              }`}
             >
               Join Free
             </button>
@@ -279,74 +364,35 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
         </FlowSection>
 
         {/* 
-          CHAPTER 04: JOIN ORPHEUS
-          Pure Pitch Black (#000000) with Electric Yellow Accent & CTA
+          CHAPTER 04: THE FOOTER / COLOPHON CARD (ELECTRIC YELLOW)
+          Site Primary Yellow (#FAFF00) with Black Typography, Creator Dossier & Full Navigation
         */}
-        <FlowSection id="join" aria-label="Join Orpheus" style={{ backgroundColor: "#000000", color: "#ffffff" }}>
+        <FlowSection id="footer" aria-label="Orpheus Colophon and Footer" style={{ backgroundColor: "#FAFF00", color: "#000000" }}>
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#FAFF00]">04 — Launch</p>
-            <span className="text-[10px] font-bold tracking-widest uppercase border border-white/20 px-3 py-1 rounded-full text-white/70">
-              100% Free
-            </span>
-          </div>
-
-          <hr className="my-[1.5vw] border-none border-t border-white/15" />
-
-          <div className="my-auto py-6">
-            <h2 className="text-[clamp(3.5rem,9.5vw,12rem)] font-normal leading-[0.88] tracking-tight font-instrument text-white">
-              The needle <br />
-              <span className="italic text-[#FAFF00]">drops now.</span>
-            </h2>
-          </div>
-
-          <hr className="my-[1.5vw] border-none border-t border-white/15" />
-
-          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-8 pb-8">
-            <p className="max-w-[45ch] text-[clamp(1rem,1.8vw,1.5rem)] font-normal leading-relaxed text-white/70 font-geist">
-              Take back your listening ritual. Join Orpheus today — completely free, zero audio ads, and complete fidelity for the modern listener.
-            </p>
-
-            <button
-              type="button"
-              onClick={onJoinClick}
-              className="inline-flex items-center gap-4 bg-[#FAFF00] text-black px-12 py-5 rounded-full font-black text-xs md:text-sm tracking-[0.2em] uppercase hover:bg-white hover:scale-105 transition-all shadow-[0_0_40px_rgba(250,255,0,0.4)] cursor-pointer shrink-0"
-            >
-              <span>Get Started Free</span>
-              <ArrowUpRight size={18} />
-            </button>
-          </div>
-        </FlowSection>
-
-        {/* 
-          CHAPTER 05: THE FOOTER / COLOPHON CARD
-          Deep Luxury Black (#08080a) with Yellow Accents, Creator Dossier & Full Navigation
-        */}
-        <FlowSection id="footer" aria-label="Orpheus Colophon and Footer" style={{ backgroundColor: "#08080a", color: "#ffffff" }}>
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#FAFF00]">05 — The Colophon</p>
-            <span className="text-[10px] font-bold tracking-widest uppercase border border-white/20 px-3 py-1 rounded-full text-white/70">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-black/80">04 — The Colophon</p>
+            <span className="text-[10px] font-bold tracking-widest uppercase border border-black/25 px-3 py-1 rounded-full text-black/80">
               Audio Client & Architecture
             </span>
           </div>
 
-          <hr className="my-[1.2vw] border-none border-t border-white/15" />
+          <hr className="my-[1.2vw] border-none border-t border-black/20" />
 
           <div className="my-auto py-2">
             <div className="flex items-center gap-3.5 mb-3">
-              <div className="w-10 h-10 rounded-full bg-[#FAFF00] flex items-center justify-center p-2 shadow-[0_0_20px_rgba(250,255,0,0.4)] shrink-0">
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center p-2 shadow-xl shrink-0">
                 <Image src="/logo-trimmed.png" alt="Orpheus Logo" width={22} height={22} className="object-contain" />
               </div>
-              <span className="text-xl font-black uppercase tracking-[0.25em] text-white">
+              <span className="text-xl font-black uppercase tracking-[0.25em] text-black">
                 Orpheus
               </span>
             </div>
-            <h2 className="text-[clamp(2.8rem,6.8vw,8.5rem)] font-normal leading-[0.92] tracking-tight font-instrument text-white">
+            <h2 className="text-[clamp(2.8rem,6.8vw,8.5rem)] font-normal leading-[0.92] tracking-tight font-instrument text-black">
               Music without noise. <br />
-              <span className="italic text-[#FAFF00]">Design without compromise.</span>
+              <span className="italic text-black/75">Design without compromise.</span>
             </h2>
           </div>
 
-          <hr className="my-[1.2vw] border-none border-t border-white/15" />
+          <hr className="my-[1.2vw] border-none border-t border-black/20" />
 
           {/* Footer Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-1">
@@ -354,30 +400,30 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             {/* Col 1: Project Specs */}
             <div className="md:col-span-4 flex flex-col justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FAFF00] mb-2">The Mission</p>
-                <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-white/70 font-geist">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-black mb-2">The Mission</p>
+                <p className="text-[clamp(0.85rem,1.1vw,1rem)] leading-relaxed text-black/75 font-geist">
                   A high-fidelity streaming sanctuary created to dismantle algorithmic clutter and commercial noise. Built for listeners who cherish album experiences and analog nuance.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 pt-4">
-                <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-wider text-white/70">Next.js 16</span>
-                <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-wider text-white/70">Tailwind CSS</span>
-                <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-wider text-white/70">Web Audio API</span>
-                <span className="px-2.5 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-wider text-[#FAFF00]">Lossless DSP</span>
+                <span className="px-2.5 py-1 bg-black/10 border border-black/15 rounded-full text-[10px] font-bold uppercase tracking-wider text-black">Next.js 16</span>
+                <span className="px-2.5 py-1 bg-black/10 border border-black/15 rounded-full text-[10px] font-bold uppercase tracking-wider text-black">Tailwind CSS</span>
+                <span className="px-2.5 py-1 bg-black/10 border border-black/15 rounded-full text-[10px] font-bold uppercase tracking-wider text-black">Web Audio API</span>
+                <span className="px-2.5 py-1 bg-black text-[#FAFF00] rounded-full text-[10px] font-bold uppercase tracking-wider">Lossless DSP</span>
               </div>
             </div>
 
             {/* Col 2: Creator Dossier & Links */}
             <div className="md:col-span-5 flex flex-col justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FAFF00] mb-3">Connect with the Creator</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-black mb-3">Connect with the Creator</p>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-full bg-[#FAFF00] text-black font-black flex items-center justify-center text-xs shadow-[0_0_12px_rgba(250,255,0,0.35)] shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-black text-[#FAFF00] font-black flex items-center justify-center text-xs shadow-md shrink-0">
                     SU
                   </div>
                   <div>
-                    <p className="font-bold text-sm text-white leading-none">Shubham Upadhyay</p>
-                    <p className="text-[11px] text-white/50 mt-1">Creator & Full-Stack Architect</p>
+                    <p className="font-bold text-sm text-black leading-none">Shubham Upadhyay</p>
+                    <p className="text-[11px] text-black/60 mt-1">Creator & Full-Stack Architect</p>
                   </div>
                 </div>
 
@@ -386,35 +432,35 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
                     href="https://github.com/Shubham126710" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-xs text-white/70 hover:text-white transition-colors p-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/30"
+                    className="flex items-center gap-2 text-xs font-medium text-black hover:text-[#FAFF00] transition-colors p-2 rounded-xl bg-black/10 hover:bg-black border border-black/15"
                   >
                     <span>GitHub</span>
-                    <ArrowUpRight size={13} className="ml-auto text-white/40" />
+                    <ArrowUpRight size={13} className="ml-auto opacity-50" />
                   </a>
                   <a 
                     href="https://www.linkedin.com/in/upadhyay-shubham/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-xs text-white/70 hover:text-white transition-colors p-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/30"
+                    className="flex items-center gap-2 text-xs font-medium text-black hover:text-[#FAFF00] transition-colors p-2 rounded-xl bg-black/10 hover:bg-black border border-black/15"
                   >
                     <span>LinkedIn</span>
-                    <ArrowUpRight size={13} className="ml-auto text-white/40" />
+                    <ArrowUpRight size={13} className="ml-auto opacity-50" />
                   </a>
                   <a 
                     href="https://instagram.com/iamshubham_15" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-xs text-white/70 hover:text-white transition-colors p-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/30"
+                    className="flex items-center gap-2 text-xs font-medium text-black hover:text-[#FAFF00] transition-colors p-2 rounded-xl bg-black/10 hover:bg-black border border-black/15"
                   >
                     <span>Instagram</span>
-                    <ArrowUpRight size={13} className="ml-auto text-white/40" />
+                    <ArrowUpRight size={13} className="ml-auto opacity-50" />
                   </a>
                   <a 
                     href="mailto:shubham360upadhyay@gmail.com" 
-                    className="flex items-center gap-2 text-xs text-white/70 hover:text-white transition-colors p-2 rounded-xl bg-white/5 border border-white/10 hover:border-white/30"
+                    className="flex items-center gap-2 text-xs font-medium text-black hover:text-[#FAFF00] transition-colors p-2 rounded-xl bg-black/10 hover:bg-black border border-black/15"
                   >
                     <span>Email</span>
-                    <ArrowUpRight size={13} className="ml-auto text-white/40" />
+                    <ArrowUpRight size={13} className="ml-auto opacity-50" />
                   </a>
                 </div>
               </div>
@@ -423,22 +469,22 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             {/* Col 3: CTA & Navigation */}
             <div className="md:col-span-3 flex flex-col justify-between items-start md:items-end">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#FAFF00] mb-1 md:text-right">Get Started</p>
-                <p className="text-xs text-white/50 mb-3 md:text-right">No subscription required.</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-black mb-1 md:text-right">Get Started</p>
+                <p className="text-xs text-black/60 mb-3 md:text-right">No subscription required.</p>
               </div>
 
               <div className="flex flex-col gap-2.5 w-full sm:w-auto items-stretch md:items-end">
                 <button
                   type="button"
                   onClick={onJoinClick}
-                  className="inline-flex items-center justify-center gap-3 bg-[#FAFF00] text-black px-8 py-3 rounded-full font-black text-xs tracking-[0.2em] uppercase hover:bg-white transition-all shadow-[0_0_25px_rgba(250,255,0,0.35)] cursor-pointer"
+                  className="inline-flex items-center justify-center gap-3 bg-black text-[#FAFF00] hover:bg-zinc-900 px-8 py-3 rounded-full font-black text-xs tracking-[0.2em] uppercase transition-all shadow-xl hover:scale-105 cursor-pointer"
                 >
                   <span>Launch Player</span>
                   <ArrowUpRight size={16} />
                 </button>
                 <a
                   href="#hero"
-                  className="inline-flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-white/50 hover:text-white py-1.5 transition-colors"
+                  className="inline-flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-black/60 hover:text-black py-1.5 transition-colors"
                 >
                   <span>Return to Top ↑</span>
                 </a>
@@ -447,10 +493,10 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
 
           </div>
 
-          <hr className="my-[1.2vw] border-none border-t border-white/15" />
+          <hr className="my-[1.2vw] border-none border-t border-black/20" />
 
           {/* Legal / Copyright Bottom Line */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-white/40">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-black/60">
             <p>© {new Date().getFullYear()} Orpheus. Built with precision for the obsessive listener.</p>
             <p>Non-commercial audio streaming client powered by Web Audio API.</p>
           </div>
