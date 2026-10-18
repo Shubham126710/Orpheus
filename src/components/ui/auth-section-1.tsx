@@ -3,12 +3,13 @@
 import { GrainGradient } from "@paper-design/shaders-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { Disc3, X, Loader2 } from "lucide-react";
+import { Disc3, X, Loader2, Zap, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/lib/AuthContext";
 
 interface AuthSectionOneProps {
   onSuccess?: (user: any) => void;
-  onProceedToPreferences?: (data: { firstName: string; lastName: string; email: string; password: string }) => void;
+  onProceedToPreferences?: (data: { firstName: string; lastName: string; email: string; password: string; isGuest?: boolean }) => void;
   onClose?: () => void;
   initialMode?: "signup" | "login";
 }
@@ -18,6 +19,7 @@ export default function AuthSectionOne({
   onClose,
   initialMode = "signup"
 }: AuthSectionOneProps) {
+  const { loginAsGuest } = useAuth();
   const [isLogin, setIsLogin] = useState(initialMode === "login");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -25,6 +27,35 @@ export default function AuthSectionOne({
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const handleInstantBypass = () => {
+    loginAsGuest({
+      displayName: "Test Listener",
+      email: "guest@orpheus.audio",
+      preferences: ["Daft Punk", "Electronic", "The Weeknd"],
+    });
+    if (onClose) onClose();
+  };
+
+  const handleTestOnboardingFlow = () => {
+    if (onProceedToPreferences) {
+      onProceedToPreferences({
+        firstName: "Test",
+        lastName: "Listener",
+        email: "guest@orpheus.audio",
+        password: "testpassword123",
+        isGuest: true,
+      });
+    }
+  };
+
+  const handleFillTestAccount = () => {
+    setFirstName("Test");
+    setLastName("Listener");
+    setEmail("test@orpheus.audio");
+    setPassword("orpheus123");
+    setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +190,44 @@ export default function AuthSectionOne({
                   ? "Don't have an account? Create one" 
                   : "Already have an account? Sign In"}
               </button>
+            </div>
+
+            {/* Quick Testing & Developer Bypass */}
+            <div className="mt-8 pt-6 border-t border-white/10 space-y-3">
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-white/40">
+                <span>Testing & Demo Access</span>
+                <span className="text-[#FAFF00] bg-[#FAFF00]/10 border border-[#FAFF00]/25 px-2 py-0.5 rounded-full text-[10px]">Instant Mode</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleInstantBypass}
+                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-all hover:scale-[1.02] cursor-pointer"
+                >
+                  <Zap size={14} className="text-[#FAFF00]" />
+                  <span>Bypass to Player</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleTestOnboardingFlow}
+                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-[#FAFF00]/15 hover:bg-[#FAFF00]/25 border border-[#FAFF00]/30 text-xs font-bold text-[#FAFF00] transition-all hover:scale-[1.02] cursor-pointer"
+                >
+                  <Sparkles size={14} className="text-[#FAFF00]" />
+                  <span>Test Calibration</span>
+                </button>
+              </div>
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={handleFillTestAccount}
+                  className="text-[11px] font-medium text-white/40 hover:text-white/80 transition-colors underline underline-offset-2 cursor-pointer"
+                >
+                  Pre-fill test account (test@orpheus.audio)
+                </button>
+              </div>
             </div>
 
           </div>

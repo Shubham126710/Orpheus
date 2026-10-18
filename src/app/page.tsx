@@ -31,7 +31,7 @@ export default function Home() {
   const router = useRouter();
   const { playTrack } = usePlayerStore();
   const { recentlyPlayed } = useLibraryStore();
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading, logout } = useAuth();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
@@ -257,6 +257,12 @@ export default function Home() {
 
         {user && (
           <div className="flex items-center gap-3">
+            {user?.isGuest && (
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#FAFF00] bg-[#FAFF00]/10 border border-[#FAFF00]/25 px-2.5 py-1 rounded-full">
+                Test Mode
+              </span>
+            )}
+
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
               <span className="w-2 h-2 rounded-full bg-[#00FF55] animate-pulse" />
               <span className="text-xs font-geist font-medium text-white/70">
@@ -265,9 +271,9 @@ export default function Home() {
             </div>
 
             <button 
-              onClick={() => auth && auth.signOut()}
-              title="Sign Out"
-              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center transition-colors"
+              onClick={() => logout()}
+              title="Sign Out / Reset Session"
+              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center transition-colors cursor-pointer"
             >
               <LogOut size={16} />
             </button>

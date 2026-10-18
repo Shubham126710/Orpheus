@@ -91,7 +91,3 @@ body {
   width: max-content;
   animation: marquee 30s linear infinite;
 }
-
-.animate-marquee:hover {
-  animation-play-state: paused;
-}
