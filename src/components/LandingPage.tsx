@@ -142,10 +142,10 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
       <header className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-out ${
         isScrolled ? "w-auto max-w-[92vw]" : "w-[94%] max-w-4xl"
       }`}>
-        <nav className={`flex items-center justify-between rounded-full border backdrop-blur-xl transition-all duration-300 ease-out overflow-hidden ${
+        <nav className={`flex items-center justify-between rounded-full border backdrop-blur-xl transition-all duration-300 ease-out ${
           navTheme.container
         } ${
-          isScrolled ? "py-1.5 pl-3.5 sm:pl-4 pr-2 gap-3 sm:gap-6" : "py-2 pl-4 sm:pl-6 pr-2.5 gap-6"
+          isScrolled ? "py-1.5 pl-3.5 sm:pl-4 pr-3.5 sm:pr-4 gap-3 sm:gap-6" : "py-2 pl-4 sm:pl-6 pr-4 sm:pr-5 gap-6"
         }`}>
           {/* Brand Logo with dynamic badge */}
           <a href="#hero" className="flex items-center gap-2.5 group shrink-0">
@@ -176,8 +176,8 @@ export default function LandingPage({ onJoinClick }: LandingPageProps) {
             <button
               type="button"
               onClick={onJoinClick}
-              className={`font-black uppercase tracking-wider rounded-full transition-all hover:scale-105 cursor-pointer shrink-0 ${navTheme.cta} ${
-                isScrolled ? "px-3.5 py-1 text-[11px]" : "px-4 sm:px-5 py-1.5 text-xs"
+              className={`font-black uppercase tracking-wider rounded-full transition-all hover:scale-105 cursor-pointer shrink-0 whitespace-nowrap ${navTheme.cta} ${
+                isScrolled ? "px-3.5 py-1.5 text-[11px]" : "px-4 sm:px-5 py-1.5 text-xs"
               }`}
             >
               Join Free
