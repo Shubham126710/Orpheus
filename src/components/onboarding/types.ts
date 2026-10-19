@@ -39,10 +39,15 @@ export interface GenreItem {
 export interface ArtistItem {
   id: string;
   name: string;
-  genre: string;
+  genres: string[]; // Structured genre associations (one or more genres)
+  genre: string; // Primary genre identifier
   tier: "hero" | "medium" | "small";
   imageUrl: string;
   objectPosition?: string;
+  country?: string;
+  language?: string;
+  region?: string;
+  popularity?: number; // 0 - 100 recommendation priority score
   desktop: {
     size: number;
     x: number;

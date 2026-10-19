@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { ONBOARDING_ARTISTS } from "./artistsData";
 import { ArtistBubble } from "./ArtistBubble";
 import { ArtistItem } from "./types";
+import { getRecommendedArtists } from "./recommendations";
 
 interface StepArtistsProps {
   selectedGenres: string[];
@@ -22,49 +23,10 @@ export const StepArtists: React.FC<StepArtistsProps> = ({
   onBack,
   onNext,
 }) => {
-  // Pre-extracted slot positions from curated layout to guarantee 0 collisions
-  const slots = useMemo(() => {
-    return ONBOARDING_ARTISTS.map((item) => ({
-      desktop: item.desktop,
-      mobile: item.mobile,
-    }));
-  }, []);
-
-  // Sort and filter artists so those matching selected genres appear in prime focal slots
+  // Calculate genre-based artist recommendations with multi-genre scoring and smart fallback
   const displayedArtists = useMemo(() => {
-    const matching: ArtistItem[] = [];
-    const others: ArtistItem[] = [];
-
-    ONBOARDING_ARTISTS.forEach((artist) => {
-      if (selectedGenres.includes(artist.genre)) {
-        matching.push(artist);
-      } else {
-        others.push(artist);
-      }
-    });
-
-    const ordered = [...matching, ...others];
-
-    // Assign slot positions to ordered artists so matching genres take the top hero positions
-    return ordered.map((artist, idx) => {
-      const slot = slots[idx] || { desktop: artist.desktop, mobile: artist.mobile };
-      return {
-        ...artist,
-        desktop: {
-          ...artist.desktop,
-          size: slot.desktop.size,
-          x: slot.desktop.x,
-          y: slot.desktop.y,
-        },
-        mobile: {
-          ...artist.mobile,
-          size: slot.mobile.size,
-          x: slot.mobile.x,
-          y: slot.mobile.y,
-        },
-      };
-    });
-  }, [selectedGenres, slots]);
+    return getRecommendedArtists(selectedGenres, ONBOARDING_ARTISTS, 36);
+  }, [selectedGenres]);
 
   const count = selectedArtists.length;
   const isSatisfied = count >= 3;

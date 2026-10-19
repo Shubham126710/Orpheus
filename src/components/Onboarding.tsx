@@ -186,8 +186,7 @@ export default function Onboarding({ onClose, initialStep = "auth" }: Onboarding
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center bg-[#050505] text-white overflow-hidden"
       >
-        {/* Subtle Ambient Film Grain Texture */}
-        <div className="film-grain pointer-events-none opacity-30" />
+        {/* Pure smooth #050505 dark backdrop, grain removed per design requirements */}
 
         {/* Top-Right Close Button */}
         <button
