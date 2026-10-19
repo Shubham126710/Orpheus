@@ -4,7 +4,24 @@ export interface GenreItem {
   id: string;
   name: string;
   tier: "hero" | "medium" | "small";
-  iconName?: "guitar" | "waveform" | "trumpet" | "turntable" | "lyre" | "mic" | "cassette" | "lightning" | "equalizer" | "concentric" | "sparkles";
+  iconName?:
+    | "guitar"
+    | "waveform"
+    | "trumpet"
+    | "turntable"
+    | "lyre"
+    | "mic"
+    | "cassette"
+    | "lightning"
+    | "equalizer"
+    | "concentric"
+    | "sparkles"
+    | "film"
+    | "sitar"
+    | "dhol"
+    | "harmonium"
+    | "lotus"
+    | "flute";
   // Responsive desktop dimensions & relative offsets (percentage based or rem)
   desktop: {
     size: number; // in pixels

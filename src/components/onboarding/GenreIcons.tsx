@@ -138,6 +138,71 @@ export function GenreIcon({ name, isSelected }: { name?: string; isSelected: boo
         </svg>
       );
 
+    case "film":
+      // Bollywood cinema reel / clapper
+      return (
+        <svg viewBox="0 0 64 64" className={`w-8 h-8 md:w-10 md:h-10 mb-1 transition-transform ${colorClass}`}>
+          <rect x="10" y="16" width="44" height="34" rx="4" strokeWidth="3.5" fill="none" />
+          <path d="M10 26h44M18 16l-4 10M28 16l-4 10M38 16l-4 10M48 16l-4 10" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="24" cy="38" r="4" fill="currentColor" />
+          <circle cx="40" cy="38" r="4" fill="currentColor" />
+        </svg>
+      );
+
+    case "sitar":
+      // Indian classical sitar
+      return (
+        <svg viewBox="0 0 64 64" className={`w-8 h-8 md:w-10 md:h-10 mb-1 transition-transform ${colorClass}`}>
+          <path d="M46 8l10 10-24 24c-3-2-6-3-10-3-8 0-14 6-14 14 0 2 1 3 3 3 8 0 14-6 14-14 0-4-1-7-3-10z" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+          <circle cx="19" cy="45" r="4" fill="currentColor" />
+          <path d="M38 16l8 8M32 22l6 6M26 28l4 4" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      );
+
+    case "dhol":
+      // Punjabi dhol / bhangra drum
+      return (
+        <svg viewBox="0 0 64 64" className={`w-8 h-8 md:w-10 md:h-10 mb-1 transition-transform ${colorClass}`}>
+          <ellipse cx="32" cy="18" rx="20" ry="7" strokeWidth="3.5" fill="none" />
+          <path d="M12 18v28c0 3.87 8.95 7 20 7s20-3.13 20-7V18" strokeWidth="3.5" fill="none" />
+          <path d="M14 22l18 31 18-31M32 18v35" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      );
+
+    case "harmonium":
+      // Ghazal / Sufi harmonium keys
+      return (
+        <svg viewBox="0 0 64 64" className={`w-8 h-8 md:w-10 md:h-10 mb-1 transition-transform ${colorClass}`}>
+          <rect x="8" y="20" width="48" height="26" rx="4" strokeWidth="3.5" fill="none" />
+          <path d="M14 20v26M20 20v26M26 20v26M32 20v26M38 20v26M44 20v26M50 20v26" strokeWidth="2" />
+          <rect x="17" y="20" width="4" height="15" fill="currentColor" />
+          <rect x="29" y="20" width="4" height="15" fill="currentColor" />
+          <rect x="41" y="20" width="4" height="15" fill="currentColor" />
+        </svg>
+      );
+
+    case "lotus":
+      // Devotional sacred lotus
+      return (
+        <svg viewBox="0 0 64 64" className={`w-8 h-8 md:w-10 md:h-10 mb-1 transition-transform ${colorClass}`}>
+          <path d="M32 14c-4 8-4 18 0 26 4-8 4-18 0-26z" strokeWidth="3" fill="none" />
+          <path d="M32 40c-10-2-18-10-20-20 6 4 14 10 20 20zM32 40c10-2 18-10 20-20-6 4-14 10-20 20z" strokeWidth="3" fill="none" />
+          <path d="M12 48c12 4 28 4 40 0" strokeWidth="3.5" strokeLinecap="round" />
+        </svg>
+      );
+
+    case "flute":
+      // Indian bansuri folk flute
+      return (
+        <svg viewBox="0 0 64 64" className={`w-8 h-8 md:w-10 md:h-10 mb-1 transition-transform ${colorClass}`}>
+          <path d="M10 54L54 10" strokeWidth="4.5" strokeLinecap="round" />
+          <circle cx="26" cy="38" r="2" fill={isSelected ? "black" : "white"} />
+          <circle cx="32" cy="32" r="2" fill={isSelected ? "black" : "white"} />
+          <circle cx="38" cy="26" r="2" fill={isSelected ? "black" : "white"} />
+          <circle cx="44" cy="20" r="2" fill={isSelected ? "black" : "white"} />
+        </svg>
+      );
+
     default:
       return null;
   }
