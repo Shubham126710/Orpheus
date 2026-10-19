@@ -22,6 +22,14 @@ export const StepArtists: React.FC<StepArtistsProps> = ({
   onBack,
   onNext,
 }) => {
+  // Pre-extracted slot positions from curated layout to guarantee 0 collisions
+  const slots = useMemo(() => {
+    return ONBOARDING_ARTISTS.map((item) => ({
+      desktop: item.desktop,
+      mobile: item.mobile,
+    }));
+  }, []);
+
   // Sort and filter artists so those matching selected genres appear in prime focal slots
   const displayedArtists = useMemo(() => {
     const matching: ArtistItem[] = [];
@@ -35,8 +43,28 @@ export const StepArtists: React.FC<StepArtistsProps> = ({
       }
     });
 
-    return [...matching, ...others];
-  }, [selectedGenres]);
+    const ordered = [...matching, ...others];
+
+    // Assign slot positions to ordered artists so matching genres take the top hero positions
+    return ordered.map((artist, idx) => {
+      const slot = slots[idx] || { desktop: artist.desktop, mobile: artist.mobile };
+      return {
+        ...artist,
+        desktop: {
+          ...artist.desktop,
+          size: slot.desktop.size,
+          x: slot.desktop.x,
+          y: slot.desktop.y,
+        },
+        mobile: {
+          ...artist.mobile,
+          size: slot.mobile.size,
+          x: slot.mobile.x,
+          y: slot.mobile.y,
+        },
+      };
+    });
+  }, [selectedGenres, slots]);
 
   const count = selectedArtists.length;
   const isSatisfied = count >= 3;
@@ -79,7 +107,7 @@ export const StepArtists: React.FC<StepArtistsProps> = ({
         <div className="hidden md:block w-full h-full overflow-y-auto overflow-x-hidden relative touch-pan-y">
           <div className="pointer-events-none sticky top-0 left-0 right-0 h-10 bg-gradient-to-b from-[#050505] to-transparent z-20" />
 
-          <div className="relative w-full max-w-6xl mx-auto h-[1350px]">
+          <div className="relative w-full max-w-6xl mx-auto h-[1850px]">
             {displayedArtists.map((artist, idx) => (
               <ArtistBubble
                 key={artist.id}
@@ -99,7 +127,7 @@ export const StepArtists: React.FC<StepArtistsProps> = ({
         <div className="block md:hidden w-full h-full overflow-x-auto overflow-y-hidden relative touch-pan-x">
           <div className="pointer-events-none fixed left-0 top-24 bottom-24 w-8 bg-gradient-to-r from-[#050505] to-transparent z-20" />
 
-          <div className="relative w-[2400px] h-full min-h-[460px]">
+          <div className="relative w-[3200px] h-full min-h-[460px]">
             {displayedArtists.map((artist, idx) => (
               <ArtistBubble
                 key={artist.id}

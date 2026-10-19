@@ -42,6 +42,7 @@ export interface ArtistItem {
   genre: string;
   tier: "hero" | "medium" | "small";
   imageUrl: string;
+  objectPosition?: string;
   desktop: {
     size: number;
     x: number;
