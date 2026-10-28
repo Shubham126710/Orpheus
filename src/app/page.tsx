@@ -81,7 +81,7 @@ function HeaderAudioMeter() {
 
 export default function Home() {
   const router = useRouter();
-  const { playTrack } = usePlayerStore();
+  const { playTrack, currentTrack, isPlaying } = usePlayerStore();
   const { recentlyPlayed } = useLibraryStore();
   const { user, userProfile, loading, logout } = useAuth();
   
@@ -239,20 +239,25 @@ export default function Home() {
     : (feed.quickPicks.length > 0 ? feed.quickPicks : recentlyPlayed.slice(0, 6));
 
   /**
-   * Refined Music Shelf Renderer
-   * Implements true album art presentation with glassmorphism hover and clean typography
+   * Bespoke Audiophile Music Shelf Renderer
+   * Implements 12" Vinyl Gatefold Sleeves with disc reveal, catalog stamps, and editorial serif hierarchy
    */
-  const renderGridSection = (title: string, subtitle: string | null, items: any[]) => {
+  const renderGridSection = (title: string, subtitle: string | null, items: any[], catalogId: string = "01") => {
     if (!items || items.length === 0) return null;
     return (
-      <section className="w-full max-w-7xl mt-12 md:mt-16">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-5 md:mb-6">
+      <section className="w-full max-w-7xl mt-14 md:mt-20">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 pb-2.5 border-b border-white/[0.08]">
           <div>
-            <h2 className="text-xl md:text-2xl font-geist font-black text-white tracking-widest uppercase">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
+                [ ARCHIVE {catalogId} ]
+              </span>
+            </div>
+            <h2 className="text-xl md:text-2xl font-geist font-black text-white tracking-tight uppercase">
               {title}
             </h2>
             {subtitle && (
-              <p className="text-xs md:text-sm font-geist text-white/50 tracking-wider uppercase mt-1">
+              <p className="font-cormorant italic text-sm md:text-base text-white/60 tracking-wide mt-0.5">
                 {subtitle}
               </p>
             )}
@@ -263,46 +268,54 @@ export default function Home() {
           {items.map((item, i) => (
             <div 
               key={item.id + "-" + i} 
-              className="group flex flex-col cursor-pointer transition-all duration-300"
+              className="group flex flex-col cursor-pointer transition-all duration-300 relative"
               onClick={() => handleItemClick(item, items)}
             >
-              {/* Artwork Container with Vinyl Edge & Elevation */}
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-zinc-950 border border-white/10 shadow-lg group-hover:shadow-[0_16px_35px_rgba(0,0,0,0.85)] group-hover:border-[#FAFF00]/40 transition-all duration-500 mb-3">
+              {/* Artwork Container with Vinyl Gatefold Slide */}
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#0C0C10] border border-white/10 shadow-lg group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.9)] group-hover:border-[#FAFF00]/50 transition-all duration-500 mb-3">
+                
+                {/* 12" Vinyl Disc peeking out on hover */}
+                <div className="absolute top-1/2 right-1 -translate-y-1/2 w-[85%] h-[85%] rounded-full bg-[#08080A] border border-white/10 shadow-2xl group-hover:translate-x-6 transition-transform duration-500 ease-out flex items-center justify-center z-0 pointer-events-none opacity-0 group-hover:opacity-100">
+                  <div className="w-8 h-8 rounded-full bg-[#FAFF00] text-black font-mono font-black text-[6px] flex items-center justify-center uppercase tracking-tighter">
+                    ORP
+                  </div>
+                </div>
+
                 <Image
                   src={item.thumbnail}
                   alt={item.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out z-10"
                   crossOrigin="anonymous"
                 />
                 
-                {/* Subtle Inner Vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+                {/* Subtle Inner Optical Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 z-10" />
 
                 {/* Floating Play Trigger on Hover */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-                  <div className="w-12 h-12 rounded-full bg-[#FAFF00] text-black flex items-center justify-center shadow-2xl transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px] z-20">
+                  <div className="w-11 h-11 rounded-full bg-[#FAFF00] text-black flex items-center justify-center shadow-[0_0_20px_#FAFF00] transform scale-75 group-hover:scale-100 transition-transform duration-300">
                     {item.type === 'PLAYLIST' || item.type === 'ALBUM' ? (
-                      <Disc3 size={20} fill="currentColor" />
+                      <Disc3 size={18} fill="currentColor" />
                     ) : (
-                      <Play size={20} fill="currentColor" className="ml-0.5" />
+                      <Play size={18} fill="currentColor" className="ml-0.5" />
                     )}
                   </div>
                 </div>
 
                 {/* Content Type Pill */}
-                <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[9px] font-mono tracking-wider font-bold text-white/80 uppercase">
-                  {item.type === 'PLAYLIST' ? 'Playlist' : (item.type === 'ALBUM' ? 'Album' : 'Track')}
+                <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-[8px] font-mono tracking-wider font-bold text-white/80 uppercase z-20">
+                  {item.type === 'PLAYLIST' ? 'LP MIX' : (item.type === 'ALBUM' ? 'ALBUM' : 'TRACK')}
                 </div>
               </div>
 
               {/* Text Info */}
               <div className="flex flex-col min-w-0 px-0.5">
-                <h3 className="font-geist font-bold text-xs sm:text-sm text-white group-hover:text-[#FAFF00] transition-colors truncate">
+                <h3 className="font-geist font-bold text-xs sm:text-sm text-white group-hover:text-[#FAFF00] transition-colors truncate uppercase tracking-tight">
                   {item.title}
                 </h3>
-                <p className="font-geist text-[11px] text-white/50 truncate mt-0.5">
-                  {item.type === 'PLAYLIST' ? 'Curated Mix' : (item.type === 'ALBUM' ? 'Official Release' : item.artist)}
+                <p className="font-cormorant italic text-xs sm:text-sm text-white/50 truncate mt-0.5">
+                  {item.type === 'PLAYLIST' ? 'Curated Master' : (item.type === 'ALBUM' ? 'Official Pressing' : item.artist)}
                 </p>
               </div>
             </div>
@@ -313,164 +326,224 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col w-full h-full min-h-screen pt-8 md:pt-12 pb-44 md:pb-52 px-4 md:px-12 text-white items-center relative bg-[#050505]">
+    <div className="flex flex-col w-full h-full min-h-screen pt-8 md:pt-12 pb-44 md:pb-52 px-4 md:px-12 text-white items-center relative bg-transparent">
       
       {/* 1. Header & Identity Bar */}
-      <header className="mb-6 md:mb-8 w-full flex justify-between items-center max-w-7xl">
+      <header className="mb-8 md:mb-10 w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 max-w-7xl pb-6 border-b border-white/[0.08]">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FAFF00] animate-pulse" />
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rounded-full bg-[#FAFF00] shadow-[0_0_8px_#FAFF00] animate-pulse" />
             <span className="text-[10px] md:text-xs font-mono font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
-              {greeting}
+              ORPHEUS HIGH-FIDELITY ARCHIVE · 96kHz / 24-BIT
             </span>
           </div>
-          <h1 className="text-2xl md:text-4xl tracking-tight font-geist font-black uppercase text-white">
-            {userProfile?.displayName ? `${userProfile.displayName}` : "Orpheus"}
-          </h1>
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl tracking-tight font-geist font-black uppercase text-white">
+              {greeting},
+            </h1>
+            <span className="font-cormorant italic text-2xl sm:text-3xl md:text-5xl text-white/80 font-normal">
+              {userProfile?.displayName ? `${userProfile.displayName}` : "Listener"}
+            </span>
+          </div>
         </div>
 
         {user && (
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Live Studio Status Pill with Audio Meter */}
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 shadow-sm">
+            <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#0D0D12]/80 backdrop-blur-xl border border-white/10 shadow-sm">
               <HeaderAudioMeter />
-              <span className="text-xs font-geist font-bold tracking-wider uppercase text-white/80 hidden sm:inline">
-                {userProfile?.preferences?.length ? `${userProfile.preferences.length} Tuned Mixes` : "Studio Active"}
+              <span className="text-xs font-mono font-bold tracking-wider uppercase text-white/80 hidden sm:inline">
+                {userProfile?.preferences?.length ? `${userProfile.preferences.length} Tuned Mixes` : "Studio Master"}
               </span>
             </div>
 
             {user?.isGuest && (
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-white/70 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full hidden sm:inline">
-                Guest Mode
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#FAFF00] bg-[#FAFF00]/10 border border-[#FAFF00]/30 px-3 py-1 rounded-full hidden sm:inline">
+                Session Active
               </span>
             )}
 
             <button 
               onClick={() => logout()}
               title="Sign Out / Reset Session"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-white/60 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-white/60 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             >
-              <LogOut size={15} />
+              <LogOut size={16} />
             </button>
           </div>
         )}
       </header>
 
-      {/* 2. Mood & Genre Filter Pills */}
-      <div className="w-full max-w-7xl mb-8 overflow-x-auto no-scrollbar py-1">
-        <div className="flex items-center gap-2 md:gap-3 w-max">
-          {filterPills.map((pill) => {
+      {/* 2. Mood & Genre Filter Pills (Numbered Studio Bus Switchers) */}
+      <div className="w-full max-w-7xl mb-10 overflow-x-auto no-scrollbar py-1">
+        <div className="flex items-center gap-2.5 md:gap-3 w-max">
+          {filterPills.map((pill, idx) => {
             const isSelected = activeFilter === pill;
+            const indexStr = idx < 9 ? `0${idx + 1}` : `${idx + 1}`;
             return (
               <button
                 key={pill}
                 onClick={() => setActiveFilter(pill)}
-                className={`px-4 md:px-5 py-2 rounded-full text-xs md:text-sm font-geist font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                className={`flex items-center gap-2 px-4 md:px-5 py-2 rounded-full font-mono text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
                   isSelected 
-                    ? "bg-[#FAFF00] text-black shadow-[0_0_20px_rgba(250,255,0,0.4)] scale-105" 
-                    : "bg-white/[0.04] text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
+                    ? "bg-[#FAFF00] text-black shadow-[0_0_25px_rgba(250,255,0,0.45)] scale-105 border border-[#FAFF00]" 
+                    : "bg-[#0C0C10]/80 backdrop-blur-xl text-white/60 hover:text-white hover:bg-white/10 border border-white/10"
                 }`}
               >
-                {pill}
+                <span className={`text-[9px] ${isSelected ? "text-black/60" : "text-[#FAFF00]/70"}`}>
+                  {indexStr}
+                </span>
+                <span>{pill}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* 3. Quick Picks / Jump Back In Shelf */}
+      {/* 3. Quick Picks / Jump Back In Shelf (Audiophile J-Card Layout) */}
       {quickPicksList.length > 0 && (activeFilter === "All" || activeFilter === "For You") && (
-        <section className="w-full max-w-7xl mb-10 md:mb-14">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm md:text-base font-geist font-black text-white/90 uppercase tracking-widest flex items-center gap-2">
-              <Sparkles size={16} className="text-[#FAFF00]" />
-              Quick Picks & Jump Back In
-            </h2>
+        <section className="w-full max-w-7xl mb-12 md:mb-16">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/[0.08]">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
+                [ RAPID AUDIOPHILE DIAL ]
+              </span>
+              <h2 className="text-sm md:text-base font-geist font-black text-white/90 uppercase tracking-widest flex items-center gap-2">
+                Quick Picks & Jump Back In
+              </h2>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {quickPicksList.map((track: any, i: number) => (
-              <div
-                key={track.id + "-quick-" + i}
-                onClick={() => handleItemClick(track, quickPicksList)}
-                className="group flex items-center justify-between p-3 rounded-2xl bg-zinc-950/60 hover:bg-zinc-900/90 border border-white/[0.08] hover:border-[#FAFF00]/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-[0_10px_25px_rgba(0,0,0,0.6)]"
-              >
-                <div className="flex items-center gap-3.5 min-w-0 pr-3">
-                  <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/5 group-hover:scale-105 transition-transform">
-                    <Image
-                      src={track.thumbnail}
-                      alt={track.title}
-                      fill
-                      className="object-cover"
-                      crossOrigin="anonymous"
-                    />
-                  </div>
-                  <div className="min-w-0 flex flex-col justify-center">
-                    <h4 className="text-xs sm:text-sm font-geist font-bold text-white group-hover:text-[#FAFF00] transition-colors truncate">
-                      {track.title}
-                    </h4>
-                    <p className="text-[11px] font-geist text-white/50 truncate tracking-wide mt-0.5">
-                      {track.artist}
-                    </p>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    playTrack(track, quickPicksList);
-                  }}
-                  title="Play track"
-                  className="w-10 h-10 rounded-full bg-white/5 group-hover:bg-[#FAFF00] text-white group-hover:text-black flex items-center justify-center shrink-0 transition-all duration-300 shadow-md group-hover:scale-105 cursor-pointer border border-white/10 group-hover:border-[#FAFF00]"
+            {quickPicksList.map((track: any, i: number) => {
+              const isThisTrackPlaying = isPlaying && currentTrack?.id === track.id;
+              return (
+                <div
+                  key={track.id + "-quick-" + i}
+                  onClick={() => handleItemClick(track, quickPicksList)}
+                  className={`group relative flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-[#0C0C10] via-[#09090C] to-black border transition-all duration-300 cursor-pointer shadow-md hover:shadow-[0_12px_30px_rgba(0,0,0,0.85)] ${
+                    isThisTrackPlaying
+                      ? "border-[#FAFF00] bg-white/[0.06] shadow-[0_0_20px_rgba(250,255,0,0.15)]"
+                      : "border-white/[0.08] hover:border-[#FAFF00]/40 hover:bg-white/[0.04]"
+                  }`}
                 >
-                  <Play size={16} fill="currentColor" className="ml-0.5" />
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center gap-3.5 min-w-0 pr-3">
+                    {/* Index Number */}
+                    <span className="font-mono text-[11px] font-bold text-white/30 group-hover:text-[#FAFF00] transition-colors w-4 shrink-0 text-center">
+                      0{i + 1}
+                    </span>
+
+                    {/* Artwork with peeking vinyl disc */}
+                    <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 shadow-lg border border-white/10 group-hover:scale-105 transition-transform bg-black">
+                      <Image
+                        src={track.thumbnail}
+                        alt={track.title}
+                        fill
+                        className="object-cover"
+                        crossOrigin="anonymous"
+                      />
+                      {isThisTrackPlaying && (
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex items-center justify-center">
+                          <div className="flex items-end gap-[2px] h-3.5">
+                            <span className="w-1 bg-[#FAFF00] animate-[bounce_0.8s_infinite] rounded-full" />
+                            <span className="w-1 bg-[#FAFF00] animate-[bounce_0.8s_infinite_0.2s] rounded-full" />
+                            <span className="w-1 bg-[#FAFF00] animate-[bounce_0.8s_infinite_0.4s] rounded-full" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex flex-col justify-center">
+                      <h4 className="text-xs sm:text-sm font-geist font-black text-white group-hover:text-[#FAFF00] transition-colors truncate uppercase tracking-tight">
+                        {track.title}
+                      </h4>
+                      <p className="font-cormorant italic text-xs sm:text-sm text-white/60 truncate tracking-wide mt-0.5">
+                        {track.artist}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      playTrack(track, quickPicksList);
+                    }}
+                    title="Play track"
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 shadow-md group-hover:scale-105 cursor-pointer border ${
+                      isThisTrackPlaying
+                        ? "bg-[#FAFF00] text-black border-[#FAFF00] shadow-[0_0_12px_#FAFF00]"
+                        : "bg-white/5 group-hover:bg-[#FAFF00] text-white group-hover:text-black border-white/10 group-hover:border-[#FAFF00]"
+                    }`}
+                  >
+                    {isThisTrackPlaying ? (
+                      <span className="w-2.5 h-2.5 bg-black rounded-sm" />
+                    ) : (
+                      <Play size={15} fill="currentColor" className="ml-0.5" />
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* 4. Heavy Rotation / Editorial Vinyl Releases (Signature Audio Experience) */}
+      {/* 4. Heavy Rotation / Editorial Master Vinyl Boxsets */}
       {(activeFilter === "All" || activeFilter === "For You" || activeFilter === "Energize") && (
-        <section className="w-full max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-8">
+        <section className="w-full max-w-7xl mb-12">
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/[0.08]">
+            <span className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
+              [ LIMITED EDITION · BOXSET SERIES ]
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {feed.topHits.map((item, i) => (
               <div 
                 key={item.id} 
-                className="group relative flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-zinc-900/90 via-[#0B0B0E] to-black border border-white/10 hover:border-[#FAFF00]/40 transition-all duration-500 shadow-2xl hover:shadow-[0_20px_50px_rgba(0,0,0,0.85)] overflow-hidden cursor-pointer"
+                className="group relative flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#121216] via-[#09090C] to-black border border-white/10 hover:border-[#FAFF00]/40 transition-all duration-500 shadow-2xl hover:shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden cursor-pointer"
                 onClick={() => handleItemClick(item, feed.topHits)}
               >
-                {/* Background Ambient Glow */}
-                <div className="absolute top-0 right-0 w-72 h-72 bg-[#FAFF00]/5 rounded-full blur-3xl pointer-events-none" />
+                {/* Background Ambient Warm Glow */}
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[#FAFF00]/5 rounded-full blur-3xl pointer-events-none" />
 
-                {/* Left/Center: Vinyl Sleeve Showcase with peeking LP disc */}
-                <div className="relative w-40 h-40 sm:w-48 sm:h-48 shrink-0 mb-6 sm:mb-0 sm:mr-6 flex items-center justify-center">
-                  {/* Vinyl LP Disc sticking out on hover */}
-                  <div className="absolute top-1/2 left-3 -translate-y-1/2 w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-zinc-950 border-4 border-zinc-800/80 shadow-2xl group-hover:translate-x-8 sm:group-hover:translate-x-12 transition-transform duration-700 ease-out flex items-center justify-center z-0 pointer-events-none">
-                    <div className="w-28 h-28 sm:w-34 sm:h-34 rounded-full border border-white/5 flex items-center justify-center">
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-white/10 flex items-center justify-center">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#FAFF00] text-black font-geist font-black text-[7px] sm:text-[8px] flex items-center justify-center uppercase tracking-tighter text-center shadow-inner">
-                          ORPHEUS
-                        </div>
-                      </div>
+                {/* Left/Center: Vinyl Gatefold Showcase with visibly peeking LP disc */}
+                <div className="relative w-44 h-44 sm:w-52 sm:h-52 shrink-0 mb-6 sm:mb-0 sm:mr-8 flex items-center justify-center">
+                  
+                  {/* Real 12" Vinyl LP Disc peeking out with micro-grooves and rotation */}
+                  <div className="absolute top-1/2 left-4 -translate-y-1/2 w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-[#09090C] border-2 border-white/10 shadow-2xl group-hover:translate-x-10 sm:group-hover:translate-x-14 transition-transform duration-700 ease-out flex items-center justify-center z-0 pointer-events-none"
+                    style={{
+                      backgroundImage: `
+                        repeating-radial-gradient(circle at center, transparent 0, transparent 2px, rgba(255,255,255,0.035) 2px, rgba(255,255,255,0.035) 3.5px),
+                        conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.08) 45deg, transparent 90deg, rgba(255,255,255,0.08) 135deg, transparent 180deg, rgba(255,255,255,0.08) 225deg, transparent 270deg, rgba(255,255,255,0.08) 315deg, transparent 360deg)
+                      `
+                    }}
+                  >
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#18181C] border-2 border-[#FAFF00]/60 p-1 flex flex-col items-center justify-center text-center shadow-inner">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#050508] border border-white/20 mb-0.5" />
+                      <span className="font-mono text-[7px] sm:text-[8px] font-black tracking-widest text-[#FAFF00] uppercase">ORPHEUS</span>
+                      <span className="font-mono text-[5px] text-white/50 tracking-tighter">33⅓ RPM</span>
                     </div>
                   </div>
 
-                  {/* Album Cover Sleeve */}
-                  <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 z-10 bg-zinc-900">
+                  {/* Album Cover Jacket Sleeve */}
+                  <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/15 z-10 bg-zinc-900 group-hover:scale-102 transition-transform duration-500">
                     <Image
                       src={item.thumbnail}
                       alt={item.title}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                      className="object-cover"
                       crossOrigin="anonymous"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                     
                     {/* Disc Icon Badge */}
-                    <div className="absolute bottom-2.5 left-2.5 p-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[#FAFF00]">
+                    <div className="absolute bottom-3 left-3 p-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[#FAFF00]">
                       <Disc3 size={16} className="animate-[spin_6s_linear_infinite]" />
+                    </div>
+
+                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-black/75 backdrop-blur-md border border-white/15 text-[8px] font-mono text-white/80 font-bold uppercase tracking-wider">
+                      MASTER PRESSING
                     </div>
                   </div>
                 </div>
@@ -487,9 +560,17 @@ export default function Home() {
                     {item.title}
                   </h3>
 
-                  <p className="font-geist text-xs sm:text-sm text-white/50 tracking-wide mt-2 line-clamp-2">
-                    Algorithmic deep frequency flow based on top charts and your acoustic profile.
+                  <p className="font-cormorant italic text-sm sm:text-base text-white/70 tracking-wide mt-2 line-clamp-2">
+                    Algorithmic deep frequency curation masterfully balanced for acoustic immersion.
                   </p>
+
+                  <div className="flex items-center justify-center sm:justify-start gap-4 mt-3 text-[10px] font-mono text-white/40 uppercase tracking-widest">
+                    <span>HI-RES MASTER</span>
+                    <span>·</span>
+                    <span>33⅓ RPM</span>
+                    <span>·</span>
+                    <span className="text-[#FAFF00]/80">48kHz / 24-BIT</span>
+                  </div>
 
                   <div className="mt-5 flex items-center justify-center sm:justify-start gap-3">
                     <button 
@@ -515,7 +596,8 @@ export default function Home() {
         renderGridSection(
           "Curated For You",
           userProfile?.preferences?.length ? `Algorithmic blend based on ${userProfile.preferences.slice(0, 3).join(", ")}` : "Personalized daily recommendations",
-          feed.curatedHits
+          feed.curatedHits,
+          "01"
         )
       )}
 
@@ -524,7 +606,8 @@ export default function Home() {
         renderGridSection(
           `Because You Like ${feed.favoriteArtistName}`,
           `Deep cuts and similar frequencies from ${feed.favoriteArtistName}`,
-          feed.artistHits
+          feed.artistHits,
+          "02"
         )
       )}
 
@@ -533,7 +616,8 @@ export default function Home() {
         renderGridSection(
           "Focus & Flow", 
           "Ambient rhythms and lofi beats designed for pure focus", 
-          feed.chillHits
+          feed.chillHits,
+          "03"
         )
       )}
 
@@ -542,7 +626,8 @@ export default function Home() {
         renderGridSection(
           "High Voltage", 
           "Peak tempo, bass heavy playlists for workout and movement", 
-          feed.gymHits
+          feed.gymHits,
+          "04"
         )
       )}
 
@@ -551,7 +636,8 @@ export default function Home() {
         renderGridSection(
           "Trending Worldwide", 
           "Chart leaders and viral momentum", 
-          feed.hindiHits
+          feed.hindiHits,
+          "05"
         )
       )}
 

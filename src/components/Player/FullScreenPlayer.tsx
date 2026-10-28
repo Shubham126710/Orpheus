@@ -366,16 +366,22 @@ export default function FullScreenPlayer() {
               </button>
               
               <div className="w-full max-w-xl text-center px-12 mt-2">
-                <h2 className={`font-geist font-black text-2xl md:text-3xl tracking-widest uppercase ${textColor}`}>
+                <div className="inline-flex items-center gap-2 mb-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FAFF00] animate-pulse" />
+                  <span className="text-[10px] font-mono tracking-[0.25em] text-[#FAFF00] uppercase font-bold">
+                    ORPHEUS MASTER VAULT · 33⅓ RPM
+                  </span>
+                </div>
+                <h2 className={`font-geist font-black text-2xl md:text-3xl tracking-tight uppercase ${textColor} truncate`}>
                   {track.title}
                 </h2>
-                <p className={`font-geist text-sm md:text-base font-medium tracking-[0.2em] uppercase mt-2 ${isLightMode ? 'text-black/60' : 'text-white/60'}`}>
+                <p className="font-cormorant italic text-base md:text-lg tracking-wide text-white/70 mt-1 truncate">
                   {track.artist}
                 </p>
               </div>
             </div>
 
-            {/* Center Art Area with Vertical Visualizers or Lyrics */}
+            {/* Center Art Area with Vinyl Gatefold & Horizontal Sliding LP */}
             <div className="flex-1 flex items-start md:items-center justify-center w-full relative min-h-0 pt-2 pb-6 md:py-10">
               <div className="relative flex items-center justify-center w-full h-full max-w-5xl">
                 
@@ -391,27 +397,69 @@ export default function FullScreenPlayer() {
                   <VisualizerLine />
                 </motion.div>
 
-                {/* Background Layer (Art only, gets blurred on lyrics or queue) */}
-                <motion.div 
-                  className="relative w-[85vw] h-[85vw] max-w-[380px] max-h-[380px] md:w-auto md:h-full md:aspect-square bg-white p-2 md:p-4 shadow-[0_30px_60px_rgba(0,0,0,0.4)] flex-shrink-0 mx-6 md:mx-12 z-0"
-                  animate={{ 
-                    scale: (showLyrics || showQueue) ? 0.8 : isPlaying ? 1 : 0.97,
-                    opacity: (showLyrics || showQueue) ? 0.15 : 1,
-                    filter: (showLyrics || showQueue) ? "blur(20px)" : "blur(0px)",
-                    marginTop: (showLyrics || showQueue) ? "0px" : "2vh" // Add a tiny bit of top margin on mobile when playing
-                  }}
-                  transition={{ duration: 0.6, ease: "easeInOut" }}
-                >
-                  <div className="relative w-full h-full overflow-hidden bg-black">
-                    <Image
-                      src={highResThumbnail}
-                      alt={track.title}
-                      fill
-                      className="object-cover"
-                      crossOrigin="anonymous"
-                    />
-                  </div>
-                </motion.div>
+                {/* Vinyl Gatefold Suite (Album Jacket + Sliding Spinning Vinyl) */}
+                <div className="relative flex items-center justify-center flex-shrink-0 mx-4 md:mx-12 z-0">
+                  
+                  {/* Sliding Spinning 12" Vinyl Disc */}
+                  <motion.div
+                    animate={{
+                      x: isPlaying && !showLyrics && !showQueue ? "22%" : "0%",
+                      rotate: isPlaying ? 360 : 0,
+                      opacity: (showLyrics || showQueue) ? 0.2 : 1,
+                    }}
+                    transition={{
+                      x: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
+                      rotate: { repeat: Infinity, duration: 9, ease: "linear" },
+                      opacity: { duration: 0.4 }
+                    }}
+                    className="absolute right-0 w-[78vw] h-[78vw] max-w-[340px] max-h-[340px] md:w-[330px] md:h-[330px] rounded-full bg-[#0C0C0F] shadow-[0_20px_50px_rgba(0,0,0,0.95)] border border-white/10 z-0 flex items-center justify-center overflow-hidden pointer-events-none"
+                    style={{
+                      backgroundImage: `
+                        repeating-radial-gradient(circle at center, transparent 0, transparent 2px, rgba(255,255,255,0.035) 2px, rgba(255,255,255,0.035) 3.5px),
+                        conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.08) 45deg, transparent 90deg, rgba(255,255,255,0.08) 135deg, transparent 180deg, rgba(255,255,255,0.08) 225deg, transparent 270deg, rgba(255,255,255,0.08) 315deg, transparent 360deg)
+                      `
+                    }}
+                  >
+                    {/* Vinyl Center Spindle Label */}
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#16161A] border-2 border-[#FAFF00]/70 p-2 flex flex-col items-center justify-center text-center shadow-inner relative">
+                      <div className="w-3.5 h-3.5 rounded-full bg-[#050508] border border-white/30 mb-1" />
+                      <span className="font-mono text-[8px] font-black tracking-widest text-[#FAFF00] uppercase">ORPHEUS</span>
+                      <span className="font-mono text-[6px] text-white/60 tracking-wider">33⅓ RPM · STEREO</span>
+                    </div>
+                  </motion.div>
+
+                  {/* Gatefold Record Jacket */}
+                  <motion.div 
+                    className="relative w-[80vw] h-[80vw] max-w-[360px] max-h-[360px] md:w-[350px] md:h-[350px] bg-[#101014] p-3 md:p-3.5 rounded-2xl shadow-[0_30px_70px_rgba(0,0,0,0.9)] border border-white/15 flex-shrink-0 z-10 overflow-hidden"
+                    animate={{ 
+                      scale: (showLyrics || showQueue) ? 0.8 : isPlaying ? 1 : 0.98,
+                      opacity: (showLyrics || showQueue) ? 0.15 : 1,
+                      filter: (showLyrics || showQueue) ? "blur(20px)" : "blur(0px)",
+                    }}
+                    transition={{ duration: 0.6, ease: "easeInOut" }}
+                  >
+                    {/* Sleeve Spine & Optical Gloss */}
+                    <div className="absolute top-0 bottom-0 left-0 w-2.5 bg-gradient-to-r from-black/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-black/50 via-transparent to-white/[0.08] z-10 pointer-events-none" />
+
+                    <div className="relative w-full h-full overflow-hidden rounded-xl bg-black">
+                      <Image
+                        src={highResThumbnail}
+                        alt={track.title}
+                        fill
+                        className="object-cover"
+                        crossOrigin="anonymous"
+                        priority
+                      />
+                    </div>
+
+                    {/* Analog Catalog Tag Badge */}
+                    <div className="absolute bottom-4 left-4 z-20 px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-md border border-white/15 text-[8px] font-mono text-white/80 tracking-widest uppercase">
+                      LP · 12&quot; VINYL MASTER
+                    </div>
+                  </motion.div>
+
+                </div>
 
                 {/* Right Visualizer */}
                 <motion.div 
