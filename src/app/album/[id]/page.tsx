@@ -55,7 +55,7 @@ export default function AlbumPage({ params }: { params: { id: string } }) {
           </div>
           <div className="flex flex-col gap-2 pb-2">
             <span className="font-geist text-xs uppercase tracking-widest text-white/70">Album</span>
-            <h1 className="text-5xl md:text-7xl font-instrument font-bold tracking-tight">{mockAlbum.title}</h1>
+            <h1 className="text-4xl md:text-6xl font-geist font-black tracking-tight uppercase">{mockAlbum.title}</h1>
             <div className="flex items-center gap-2 mt-4 font-geist text-sm text-white/80">
               <span className="font-bold">{mockAlbum.artist}</span>
               <span>•</span>

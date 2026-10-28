@@ -77,7 +77,7 @@ export default function MiniPlayer() {
                 {currentTrack?.title}
               </span>
             </div>
-            <span className="font-cormorant italic text-xs md:text-sm text-white/60 truncate tracking-wide mt-0.5">
+            <span className="font-geist font-medium text-xs md:text-sm text-white/60 truncate tracking-normal mt-0.5">
               {currentTrack?.artist}
             </span>
           </div>

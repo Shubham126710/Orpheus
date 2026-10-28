@@ -239,25 +239,20 @@ export default function Home() {
     : (feed.quickPicks.length > 0 ? feed.quickPicks : recentlyPlayed.slice(0, 6));
 
   /**
-   * Bespoke Audiophile Music Shelf Renderer
-   * Implements 12" Vinyl Gatefold Sleeves with disc reveal, catalog stamps, and editorial serif hierarchy
+   * Audiophile Music Shelf Renderer
+   * Clean, high-density artwork cards with refined hover state and crisp typography.
    */
-  const renderGridSection = (title: string, subtitle: string | null, items: any[], catalogId: string = "01") => {
+  const renderGridSection = (title: string, subtitle: string | null, items: any[]) => {
     if (!items || items.length === 0) return null;
     return (
-      <section className="w-full max-w-7xl mt-14 md:mt-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 pb-2.5 border-b border-white/[0.08]">
+      <section className="w-full max-w-7xl mt-12 md:mt-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-5 pb-2.5 border-b border-white/[0.08]">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
-                [ ARCHIVE {catalogId} ]
-              </span>
-            </div>
             <h2 className="text-xl md:text-2xl font-geist font-black text-white tracking-tight uppercase">
               {title}
             </h2>
             {subtitle && (
-              <p className="font-cormorant italic text-sm md:text-base text-white/60 tracking-wide mt-0.5">
+              <p className="font-geist text-xs sm:text-sm text-white/50 tracking-normal mt-1">
                 {subtitle}
               </p>
             )}
@@ -271,29 +266,21 @@ export default function Home() {
               className="group flex flex-col cursor-pointer transition-all duration-300 relative"
               onClick={() => handleItemClick(item, items)}
             >
-              {/* Artwork Container with Vinyl Gatefold Slide */}
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#0C0C10] border border-white/10 shadow-lg group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.9)] group-hover:border-[#FAFF00]/50 transition-all duration-500 mb-3">
-                
-                {/* 12" Vinyl Disc peeking out on hover */}
-                <div className="absolute top-1/2 right-1 -translate-y-1/2 w-[85%] h-[85%] rounded-full bg-[#08080A] border border-white/10 shadow-2xl group-hover:translate-x-6 transition-transform duration-500 ease-out flex items-center justify-center z-0 pointer-events-none opacity-0 group-hover:opacity-100">
-                  <div className="w-8 h-8 rounded-full bg-[#FAFF00] text-black font-mono font-black text-[6px] flex items-center justify-center uppercase tracking-tighter">
-                    ORP
-                  </div>
-                </div>
-
+              {/* Artwork Container */}
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#0C0C10] border border-white/10 shadow-md group-hover:shadow-[0_15px_30px_rgba(0,0,0,0.8)] group-hover:border-[#FAFF00]/50 transition-all duration-300 mb-3">
                 <Image
                   src={item.thumbnail}
                   alt={item.title}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out z-10"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out z-10"
                   crossOrigin="anonymous"
                 />
                 
                 {/* Subtle Inner Optical Vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60 z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 z-10" />
 
                 {/* Floating Play Trigger on Hover */}
-                <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px] z-20">
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px] z-20">
                   <div className="w-11 h-11 rounded-full bg-[#FAFF00] text-black flex items-center justify-center shadow-[0_0_20px_#FAFF00] transform scale-75 group-hover:scale-100 transition-transform duration-300">
                     {item.type === 'PLAYLIST' || item.type === 'ALBUM' ? (
                       <Disc3 size={18} fill="currentColor" />
@@ -305,7 +292,7 @@ export default function Home() {
 
                 {/* Content Type Pill */}
                 <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-[8px] font-mono tracking-wider font-bold text-white/80 uppercase z-20">
-                  {item.type === 'PLAYLIST' ? 'LP MIX' : (item.type === 'ALBUM' ? 'ALBUM' : 'TRACK')}
+                  {item.type === 'PLAYLIST' ? 'PLAYLIST' : (item.type === 'ALBUM' ? 'ALBUM' : 'TRACK')}
                 </div>
               </div>
 
@@ -314,8 +301,8 @@ export default function Home() {
                 <h3 className="font-geist font-bold text-xs sm:text-sm text-white group-hover:text-[#FAFF00] transition-colors truncate uppercase tracking-tight">
                   {item.title}
                 </h3>
-                <p className="font-cormorant italic text-xs sm:text-sm text-white/50 truncate mt-0.5">
-                  {item.type === 'PLAYLIST' ? 'Curated Master' : (item.type === 'ALBUM' ? 'Official Pressing' : item.artist)}
+                <p className="font-geist text-xs text-white/50 truncate mt-0.5 font-medium">
+                  {item.type === 'PLAYLIST' ? 'Curated Playlist' : (item.type === 'ALBUM' ? 'Album' : item.artist)}
                 </p>
               </div>
             </div>
@@ -331,20 +318,12 @@ export default function Home() {
       {/* 1. Header & Identity Bar */}
       <header className="mb-8 md:mb-10 w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 max-w-7xl pb-6 border-b border-white/[0.08]">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-[#FAFF00] shadow-[0_0_8px_#FAFF00] animate-pulse" />
-            <span className="text-[10px] md:text-xs font-mono font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
-              ORPHEUS HIGH-FIDELITY ARCHIVE · 96kHz / 24-BIT
-            </span>
-          </div>
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl md:text-5xl tracking-tight font-geist font-black uppercase text-white">
-              {greeting},
-            </h1>
-            <span className="font-cormorant italic text-2xl sm:text-3xl md:text-5xl text-white/80 font-normal">
-              {userProfile?.displayName ? `${userProfile.displayName}` : "Listener"}
-            </span>
-          </div>
+          <span className="text-[10px] md:text-xs font-geist font-bold tracking-[0.2em] text-[#FAFF00] uppercase block mb-1">
+            {greeting}
+          </span>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl tracking-tight font-geist font-black uppercase text-white">
+            {userProfile?.displayName ? userProfile.displayName : "Orpheus Studio"}
+          </h1>
         </div>
 
         {user && (
@@ -374,44 +353,35 @@ export default function Home() {
         )}
       </header>
 
-      {/* 2. Mood & Genre Filter Pills (Numbered Studio Bus Switchers) */}
+      {/* 2. Mood & Genre Filter Pills */}
       <div className="w-full max-w-7xl mb-10 overflow-x-auto no-scrollbar py-1">
         <div className="flex items-center gap-2.5 md:gap-3 w-max">
-          {filterPills.map((pill, idx) => {
+          {filterPills.map((pill) => {
             const isSelected = activeFilter === pill;
-            const indexStr = idx < 9 ? `0${idx + 1}` : `${idx + 1}`;
             return (
               <button
                 key={pill}
                 onClick={() => setActiveFilter(pill)}
-                className={`flex items-center gap-2 px-4 md:px-5 py-2 rounded-full font-mono text-[11px] md:text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                className={`px-4 md:px-5 py-2 rounded-full font-geist font-bold text-xs md:text-sm uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                   isSelected 
-                    ? "bg-[#FAFF00] text-black shadow-[0_0_25px_rgba(250,255,0,0.45)] scale-105 border border-[#FAFF00]" 
+                    ? "bg-[#FAFF00] text-black shadow-[0_0_20px_rgba(250,255,0,0.35)] scale-[1.02] border border-[#FAFF00]" 
                     : "bg-[#0C0C10]/80 backdrop-blur-xl text-white/60 hover:text-white hover:bg-white/10 border border-white/10"
                 }`}
               >
-                <span className={`text-[9px] ${isSelected ? "text-black/60" : "text-[#FAFF00]/70"}`}>
-                  {indexStr}
-                </span>
-                <span>{pill}</span>
+                {pill}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* 3. Quick Picks / Jump Back In Shelf (Audiophile J-Card Layout) */}
+      {/* 3. Quick Picks / Jump Back In Shelf */}
       {quickPicksList.length > 0 && (activeFilter === "All" || activeFilter === "For You") && (
         <section className="w-full max-w-7xl mb-12 md:mb-16">
           <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/[0.08]">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
-                [ RAPID AUDIOPHILE DIAL ]
-              </span>
-              <h2 className="text-sm md:text-base font-geist font-black text-white/90 uppercase tracking-widest flex items-center gap-2">
-                Quick Picks & Jump Back In
-              </h2>
-            </div>
+            <h2 className="text-sm md:text-base font-geist font-black text-white/90 uppercase tracking-widest flex items-center gap-2">
+              Quick Picks & Jump Back In
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
@@ -421,20 +391,15 @@ export default function Home() {
                 <div
                   key={track.id + "-quick-" + i}
                   onClick={() => handleItemClick(track, quickPicksList)}
-                  className={`group relative flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-[#0C0C10] via-[#09090C] to-black border transition-all duration-300 cursor-pointer shadow-md hover:shadow-[0_12px_30px_rgba(0,0,0,0.85)] ${
+                  className={`group relative flex items-center justify-between p-3.5 rounded-2xl bg-[#0B0B0E] border transition-all duration-200 cursor-pointer shadow-md hover:shadow-[0_10px_25px_rgba(0,0,0,0.7)] ${
                     isThisTrackPlaying
                       ? "border-[#FAFF00] bg-white/[0.06] shadow-[0_0_20px_rgba(250,255,0,0.15)]"
                       : "border-white/[0.08] hover:border-[#FAFF00]/40 hover:bg-white/[0.04]"
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0 pr-3">
-                    {/* Index Number */}
-                    <span className="font-mono text-[11px] font-bold text-white/30 group-hover:text-[#FAFF00] transition-colors w-4 shrink-0 text-center">
-                      0{i + 1}
-                    </span>
-
-                    {/* Artwork with peeking vinyl disc */}
-                    <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 shadow-lg border border-white/10 group-hover:scale-105 transition-transform bg-black">
+                    {/* Artwork */}
+                    <div className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 shadow-md border border-white/10 group-hover:scale-105 transition-transform bg-black">
                       <Image
                         src={track.thumbnail}
                         alt={track.title}
@@ -454,10 +419,10 @@ export default function Home() {
                     </div>
 
                     <div className="min-w-0 flex flex-col justify-center">
-                      <h4 className="text-xs sm:text-sm font-geist font-black text-white group-hover:text-[#FAFF00] transition-colors truncate uppercase tracking-tight">
+                      <h4 className="text-xs sm:text-sm font-geist font-bold text-white group-hover:text-[#FAFF00] transition-colors truncate uppercase tracking-tight">
                         {track.title}
                       </h4>
-                      <p className="font-cormorant italic text-xs sm:text-sm text-white/60 truncate tracking-wide mt-0.5">
+                      <p className="font-geist text-xs text-white/50 truncate mt-0.5 font-medium">
                         {track.artist}
                       </p>
                     </div>
@@ -469,7 +434,7 @@ export default function Home() {
                       playTrack(track, quickPicksList);
                     }}
                     title="Play track"
-                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 shadow-md group-hover:scale-105 cursor-pointer border ${
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 transition-all duration-200 shadow-md group-hover:scale-105 cursor-pointer border ${
                       isThisTrackPlaying
                         ? "bg-[#FAFF00] text-black border-[#FAFF00] shadow-[0_0_12px_#FAFF00]"
                         : "bg-white/5 group-hover:bg-[#FAFF00] text-white group-hover:text-black border-white/10 group-hover:border-[#FAFF00]"
@@ -488,46 +453,25 @@ export default function Home() {
         </section>
       )}
 
-      {/* 4. Heavy Rotation / Editorial Master Vinyl Boxsets */}
+      {/* 4. Heavy Rotation */}
       {(activeFilter === "All" || activeFilter === "For You" || activeFilter === "Energize") && (
         <section className="w-full max-w-7xl mb-12">
           <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/[0.08]">
-            <span className="font-mono text-[10px] font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
-              [ LIMITED EDITION · BOXSET SERIES ]
-            </span>
+            <h2 className="text-sm md:text-base font-geist font-black text-white/90 uppercase tracking-widest">
+              Heavy Rotation
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
             {feed.topHits.map((item, i) => (
               <div 
                 key={item.id} 
-                className="group relative flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#121216] via-[#09090C] to-black border border-white/10 hover:border-[#FAFF00]/40 transition-all duration-500 shadow-2xl hover:shadow-[0_25px_60px_rgba(0,0,0,0.95)] overflow-hidden cursor-pointer"
+                className="group relative flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 rounded-3xl bg-[#0E0E12] border border-white/10 hover:border-[#FAFF00]/40 transition-all duration-300 shadow-xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.85)] overflow-hidden cursor-pointer"
                 onClick={() => handleItemClick(item, feed.topHits)}
               >
-                {/* Background Ambient Warm Glow */}
-                <div className="absolute top-0 right-0 w-80 h-80 bg-[#FAFF00]/5 rounded-full blur-3xl pointer-events-none" />
-
-                {/* Left/Center: Vinyl Gatefold Showcase with visibly peeking LP disc */}
+                {/* Left/Center: Artwork Showcase */}
                 <div className="relative w-44 h-44 sm:w-52 sm:h-52 shrink-0 mb-6 sm:mb-0 sm:mr-8 flex items-center justify-center">
-                  
-                  {/* Real 12" Vinyl LP Disc peeking out with micro-grooves and rotation */}
-                  <div className="absolute top-1/2 left-4 -translate-y-1/2 w-40 h-40 sm:w-48 sm:h-48 rounded-full bg-[#09090C] border-2 border-white/10 shadow-2xl group-hover:translate-x-10 sm:group-hover:translate-x-14 transition-transform duration-700 ease-out flex items-center justify-center z-0 pointer-events-none"
-                    style={{
-                      backgroundImage: `
-                        repeating-radial-gradient(circle at center, transparent 0, transparent 2px, rgba(255,255,255,0.035) 2px, rgba(255,255,255,0.035) 3.5px),
-                        conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.08) 45deg, transparent 90deg, rgba(255,255,255,0.08) 135deg, transparent 180deg, rgba(255,255,255,0.08) 225deg, transparent 270deg, rgba(255,255,255,0.08) 315deg, transparent 360deg)
-                      `
-                    }}
-                  >
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#18181C] border-2 border-[#FAFF00]/60 p-1 flex flex-col items-center justify-center text-center shadow-inner">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#050508] border border-white/20 mb-0.5" />
-                      <span className="font-mono text-[7px] sm:text-[8px] font-black tracking-widest text-[#FAFF00] uppercase">ORPHEUS</span>
-                      <span className="font-mono text-[5px] text-white/50 tracking-tighter">33⅓ RPM</span>
-                    </div>
-                  </div>
-
-                  {/* Album Cover Jacket Sleeve */}
-                  <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/15 z-10 bg-zinc-900 group-hover:scale-102 transition-transform duration-500">
+                  <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/15 bg-zinc-900 group-hover:scale-102 transition-transform duration-300">
                     <Image
                       src={item.thumbnail}
                       alt={item.title}
@@ -539,50 +483,33 @@ export default function Home() {
                     
                     {/* Disc Icon Badge */}
                     <div className="absolute bottom-3 left-3 p-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[#FAFF00]">
-                      <Disc3 size={16} className="animate-[spin_6s_linear_infinite]" />
-                    </div>
-
-                    <div className="absolute top-3 right-3 px-2 py-0.5 rounded bg-black/75 backdrop-blur-md border border-white/15 text-[8px] font-mono text-white/80 font-bold uppercase tracking-wider">
-                      MASTER PRESSING
+                      <Disc3 size={16} />
                     </div>
                   </div>
                 </div>
 
                 {/* Right: Curated Metadata & Primary Action */}
                 <div className="flex-1 flex flex-col justify-center min-w-0 z-10 w-full text-center sm:text-left">
-                  <div className="inline-flex items-center justify-center sm:justify-start gap-2 mb-2">
-                    <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-[#FAFF00] uppercase">
-                      HEAVY ROTATION · MIX 0{i + 1}
-                    </span>
-                  </div>
+                  <span className="text-[10px] font-geist font-bold tracking-[0.2em] text-[#FAFF00] uppercase mb-1">
+                    Featured Mix 0{i + 1}
+                  </span>
 
                   <h3 className="font-geist font-black text-xl sm:text-2xl md:text-3xl tracking-tight text-white group-hover:text-[#FAFF00] transition-colors truncate uppercase">
                     {item.title}
                   </h3>
 
-                  <p className="font-cormorant italic text-sm sm:text-base text-white/70 tracking-wide mt-2 line-clamp-2">
-                    Algorithmic deep frequency curation masterfully balanced for acoustic immersion.
+                  <p className="font-geist text-xs sm:text-sm text-white/60 tracking-normal mt-2 line-clamp-2">
+                    Curated selection tuned to high-energy rhythm and dynamic flow.
                   </p>
-
-                  <div className="flex items-center justify-center sm:justify-start gap-4 mt-3 text-[10px] font-mono text-white/40 uppercase tracking-widest">
-                    <span>HI-RES MASTER</span>
-                    <span>·</span>
-                    <span>33⅓ RPM</span>
-                    <span>·</span>
-                    <span className="text-[#FAFF00]/80">48kHz / 24-BIT</span>
-                  </div>
 
                   <div className="mt-5 flex items-center justify-center sm:justify-start gap-3">
                     <button 
                       type="button"
-                      className="inline-flex items-center gap-2 bg-[#FAFF00] hover:bg-white text-black px-6 py-2.5 rounded-full font-geist font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_25px_rgba(250,255,0,0.35)] cursor-pointer"
+                      className="inline-flex items-center gap-2 bg-[#FAFF00] hover:bg-white text-black px-6 py-2.5 rounded-full font-geist font-black text-xs tracking-wider uppercase transition-all shadow-[0_0_20px_rgba(250,255,0,0.3)] cursor-pointer"
                     >
                       <Play size={14} fill="currentColor" />
                       <span>Play Mix</span>
                     </button>
-                    <span className="text-[11px] font-mono text-white/40 tracking-wider uppercase">
-                      Curated Master
-                    </span>
                   </div>
                 </div>
               </div>
@@ -595,9 +522,8 @@ export default function Home() {
       {(activeFilter === "All" || activeFilter === "For You") && (
         renderGridSection(
           "Curated For You",
-          userProfile?.preferences?.length ? `Algorithmic blend based on ${userProfile.preferences.slice(0, 3).join(", ")}` : "Personalized daily recommendations",
-          feed.curatedHits,
-          "01"
+          userProfile?.preferences?.length ? `Based on ${userProfile.preferences.slice(0, 3).join(", ")}` : "Personalized daily recommendations",
+          feed.curatedHits
         )
       )}
 
@@ -605,9 +531,8 @@ export default function Home() {
       {(activeFilter === "All" || activeFilter === "For You" || activeFilter === feed.favoriteArtistName) && feed.artistHits.length > 0 && (
         renderGridSection(
           `Because You Like ${feed.favoriteArtistName}`,
-          `Deep cuts and similar frequencies from ${feed.favoriteArtistName}`,
-          feed.artistHits,
-          "02"
+          `Recommendations based on ${feed.favoriteArtistName}`,
+          feed.artistHits
         )
       )}
 
@@ -616,8 +541,7 @@ export default function Home() {
         renderGridSection(
           "Focus & Flow", 
           "Ambient rhythms and lofi beats designed for pure focus", 
-          feed.chillHits,
-          "03"
+          feed.chillHits
         )
       )}
 
@@ -626,8 +550,7 @@ export default function Home() {
         renderGridSection(
           "High Voltage", 
           "Peak tempo, bass heavy playlists for workout and movement", 
-          feed.gymHits,
-          "04"
+          feed.gymHits
         )
       )}
 
@@ -636,8 +559,7 @@ export default function Home() {
         renderGridSection(
           "Trending Worldwide", 
           "Chart leaders and viral momentum", 
-          feed.hindiHits,
-          "05"
+          feed.hindiHits
         )
       )}
 
