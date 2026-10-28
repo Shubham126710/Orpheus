@@ -3,6 +3,9 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Play, Pause, X, RotateCcw, SkipForward } from 'lucide-react';
 import { usePlayerStore } from '@/store/usePlayerStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useAudioMeterSource } from '@/hooks/use-audio-meter-source';
+import { LevelMeter } from '@/components/ui/level-meter';
+import { Spectrum, SpectrumCanvas } from '@/components/ui/spectrum';
 
 interface FocusModeProps {
   isOpen: boolean;
@@ -12,6 +15,7 @@ interface FocusModeProps {
 export default function FocusMode({ isOpen, onClose }: FocusModeProps) {
   const { currentTrack, isPlaying, togglePlay, playNext } = usePlayerStore();
   const { dominantColor, secondaryColor } = useThemeStore();
+  const { meterSource, spectrumSource } = useAudioMeterSource();
   
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -249,40 +253,81 @@ export default function FocusMode({ isOpen, onClose }: FocusModeProps) {
           </div>
         </div>
 
-        {/* Bottom Music Card - Fixed at bottom within flow */}
+        {/* Bottom Music Card with Analog Hi-Fi Meter Bridge */}
         {currentTrack && (
-          <div className="relative z-20 w-[90%] max-w-lg flex items-center justify-between p-3 md:p-4 bg-white/5 rounded-3xl backdrop-blur-2xl border border-white/10 overflow-hidden shadow-2xl mb-8 md:mb-12 shrink-0">
-            <div className="flex items-center gap-4 relative z-10 min-w-0">
-              <div className="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl overflow-hidden bg-black/50 shrink-0">
-                <img src={highResThumbnail} alt={currentTrack.title} className="w-full h-full object-cover" crossOrigin="anonymous" />
-                {isPlaying && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
-                    <div className="flex gap-1 items-end h-4">
-                      {[1,2,3].map(i => (
-                        <motion.div
-                          key={i}
-                          animate={{ height: ["20%", "100%", "20%"] }}
-                          transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
-                          className="w-1 bg-white rounded-full"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+          <div className="relative z-20 w-[92%] max-w-lg flex flex-col p-3.5 md:p-4 bg-[#09090C]/90 rounded-3xl backdrop-blur-2xl border border-white/15 overflow-hidden shadow-2xl mb-6 md:mb-10 shrink-0">
+            {/* Top Bridge: Live Stereo Level Meter & Spectrum */}
+            <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-white/10">
+              
+              {/* Stereo VU / Peak Meter */}
+              <div className="flex flex-col gap-1 w-28 sm:w-36 shrink-0">
+                <div className="flex items-center justify-between text-[9px] font-mono text-white/50 tracking-wider">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <span className={`w-1.5 h-1.5 rounded-full ${isPlaying ? "bg-[#FAFF00] shadow-[0_0_6px_#FAFF00]" : "bg-white/20"}`} />
+                    BUS VU
+                  </span>
+                  <span className="text-[#FAFF00] font-semibold text-[8px]">0 dB</span>
+                </div>
+                <LevelMeter
+                  source={meterSource}
+                  orientation="horizontal"
+                  variant="segmented"
+                  segments={18}
+                  minDb={-42}
+                  maxDb={3}
+                  channelCount={2}
+                  className="h-3 w-full bg-black/60 rounded border border-white/10 p-0.5"
+                />
+                <div className="flex items-center justify-between text-[8px] font-mono text-white/40 px-0.5">
+                  <span>L</span>
+                  <span>R</span>
+                </div>
               </div>
-              <div className="flex flex-col min-w-0 pr-2">
-                <span className="font-geist font-bold text-base md:text-lg truncate text-white">{currentTrack.title}</span>
-                <span className="font-geist font-medium text-xs md:text-sm text-white/60 tracking-wide truncate">{currentTrack.artist}</span>
+
+              {/* Center / Right: Live Frequency Spectrum */}
+              <div className="flex-1 flex flex-col gap-1 min-w-0">
+                <div className="flex items-center justify-between text-[9px] font-mono text-white/50 tracking-wider">
+                  <span className="font-bold">FFT SPECTRUM</span>
+                  <span className="text-white/40 text-[8px]">40Hz - 16kHz</span>
+                </div>
+                <div className="h-7 w-full bg-black/60 rounded border border-white/10 overflow-hidden px-1">
+                  <Spectrum
+                    source={spectrumSource}
+                    variant="bars"
+                    minDb={-70}
+                    maxDb={0}
+                    minHz={40}
+                    maxHz={16000}
+                    peakHold={true}
+                    grid={false}
+                    className="h-full w-full [--spectrum:#FAFF00] [--spectrum-peak:#FFFFFF]"
+                  >
+                    <SpectrumCanvas className="h-full w-full" />
+                  </Spectrum>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 md:gap-2 relative z-10 shrink-0 mr-1 md:mr-2">
-              <button onClick={togglePlay} className="p-3 hover:bg-white/10 rounded-full transition-colors text-white/90 hover:text-white">
-                {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
-              </button>
-              <button onClick={playNext} className="p-3 hover:bg-white/10 rounded-full transition-colors text-white/90 hover:text-white">
-                <SkipForward size={20} fill="currentColor" />
-              </button>
+            {/* Bottom: Track Info & Controls */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3.5 relative z-10 min-w-0">
+                <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-2xl overflow-hidden bg-black/50 shrink-0 border border-white/10 shadow-md">
+                  <img src={highResThumbnail} alt={currentTrack.title} className="w-full h-full object-cover" crossOrigin="anonymous" />
+                </div>
+                <div className="flex flex-col min-w-0 pr-2">
+                  <span className="font-geist font-bold text-sm md:text-base truncate text-white">{currentTrack.title}</span>
+                  <span className="font-geist font-medium text-xs text-white/60 tracking-wide truncate">{currentTrack.artist}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 md:gap-2 relative z-10 shrink-0 mr-1">
+                <button onClick={togglePlay} className="p-2.5 hover:bg-white/10 rounded-full transition-colors text-white/90 hover:text-white">
+                  {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
+                </button>
+                <button onClick={playNext} className="p-2.5 hover:bg-white/10 rounded-full transition-colors text-white/90 hover:text-white">
+                  <SkipForward size={20} fill="currentColor" />
+                </button>
+              </div>
             </div>
           </div>
         )}

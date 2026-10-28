@@ -54,6 +54,21 @@ interface PlayerState {
   
   analyser: AnalyserNode | null;
   setAnalyser: (analyser: AnalyserNode) => void;
+
+  // Studio Console & EQ
+  isMixerOpen: boolean;
+  setIsMixerOpen: (open: boolean) => void;
+  toggleMixer: () => void;
+  bass: number;
+  mid: number;
+  treble: number;
+  pan: number;
+  setBass: (bass: number) => void;
+  setMid: (mid: number) => void;
+  setTreble: (treble: number) => void;
+  setPan: (pan: number) => void;
+  resetEq: () => void;
+  applyEqPreset: (preset: 'flat' | 'bass' | 'vocal' | 'warm') => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -88,6 +103,35 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   
   analyser: null,
   setAnalyser: (analyser) => set({ analyser }),
+
+  isMixerOpen: false,
+  setIsMixerOpen: (open) => set({ isMixerOpen: open }),
+  toggleMixer: () => set((state) => ({ isMixerOpen: !state.isMixerOpen })),
+  bass: 0,
+  mid: 0,
+  treble: 0,
+  pan: 0,
+  setBass: (bass) => set({ bass }),
+  setMid: (mid) => set({ mid }),
+  setTreble: (treble) => set({ treble }),
+  setPan: (pan) => set({ pan }),
+  resetEq: () => set({ bass: 0, mid: 0, treble: 0, pan: 0 }),
+  applyEqPreset: (preset) => {
+    switch (preset) {
+      case 'flat':
+        set({ bass: 0, mid: 0, treble: 0, pan: 0 });
+        break;
+      case 'bass':
+        set({ bass: 6, mid: -1, treble: 2, pan: 0 });
+        break;
+      case 'vocal':
+        set({ bass: -2, mid: 4.5, treble: 3, pan: 0 });
+        break;
+      case 'warm':
+        set({ bass: 3.5, mid: 1.5, treble: -2, pan: 0 });
+        break;
+    }
+  },
 
   playTrack: (track, contextQueue) => {
     useLibraryStore.getState().addToRecent(track);

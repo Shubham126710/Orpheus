@@ -2,7 +2,7 @@
 
 import { usePlayerStore } from "@/store/usePlayerStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, SkipForward, SkipBack, Shuffle, Heart, ChevronDown, Repeat, Mic2, ListMusic, Music, PlusSquare, Target } from "lucide-react";
+import { Play, Pause, SkipForward, SkipBack, Shuffle, Heart, ChevronDown, Repeat, Mic2, ListMusic, Music, PlusSquare, Target, SlidersHorizontal, Volume2, Volume1, VolumeX } from "lucide-react";
 import Image from "next/image";
 import { useThemeStore } from "@/store/useThemeStore";
 import { useLibraryStore } from "@/store/useLibraryStore";
@@ -11,9 +11,42 @@ import { useColorExtraction } from "@/hooks/useColorExtraction";
 import PlaylistModal from "@/components/PlaylistModal";
 import FocusMode from "./FocusMode";
 import RetroFilmBackground from "./RetroFilmBackground";
+import StudioMixerDrawer from "./StudioMixerDrawer";
+import { Fader, FaderTrack, FaderRange, FaderThumb } from "@/components/ui/fader";
+import { formatDb, gainToDb, dbToGain, SILENCE_DB } from "@/lib/audio/decibels";
 
 export default function FullScreenPlayer() {
-  const { currentTrack, isPlaying, setIsPlaying, playNext, playPrevious, playTrack, queue, progress, setProgress, isExpanded, setIsExpanded, currentTime, duration, setSeekTo, repeatMode, toggleRepeat, isShuffled, toggleShuffle, showLyrics, setShowLyrics } = usePlayerStore();
+  const {
+    currentTrack,
+    isPlaying,
+    setIsPlaying,
+    playNext,
+    playPrevious,
+    playTrack,
+    queue,
+    progress,
+    setProgress,
+    isExpanded,
+    setIsExpanded,
+    currentTime,
+    duration,
+    setSeekTo,
+    repeatMode,
+    toggleRepeat,
+    isShuffled,
+    toggleShuffle,
+    showLyrics,
+    setShowLyrics,
+    volume,
+    setVolume,
+    isMixerOpen,
+    setIsMixerOpen,
+    toggleMixer,
+    bass,
+    mid,
+    treble,
+    pan,
+  } = usePlayerStore();
   const { toggleLike, isLiked: checkIsLiked } = useLibraryStore();
   const { dominantColor } = useThemeStore();
   const [mounted, setMounted] = useState(false);
@@ -34,6 +67,8 @@ export default function FullScreenPlayer() {
   const bgMuted = isLightMode ? "bg-black/10 hover:bg-black/20" : "bg-white/10 hover:bg-white/20";
   const bgControls = isLightMode ? "bg-black/20" : "bg-white/20";
   const bgControlsActive = isLightMode ? "bg-black/80" : "bg-white/80";
+
+  const currentVolumeDb = volume <= 0 ? SILENCE_DB : gainToDb(volume);
 
   useEffect(() => setMounted(true), []);
   
@@ -580,6 +615,18 @@ export default function FullScreenPlayer() {
                   {repeatMode === 'one' && <span className="absolute -top-1 -right-1 text-[10px] font-bold bg-white text-black rounded-full w-4 h-4 flex items-center justify-center">1</span>}
                 </button>
 
+                {/* Studio Mixer Button */}
+                <button 
+                  onClick={toggleMixer} 
+                  className={`transition-all hover:scale-110 p-2 relative ${isMixerOpen ? 'text-[#FAFF00]' : textMuted}`}
+                  title="Studio Console"
+                >
+                  <SlidersHorizontal size={22} strokeWidth={2} />
+                  {(bass !== 0 || mid !== 0 || treble !== 0 || pan !== 0) && (
+                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#FAFF00] shadow-[0_0_6px_#FAFF00]" />
+                  )}
+                </button>
+
                 {/* Lyrics Button */}
                 <button 
                   onClick={() => {
@@ -604,9 +651,49 @@ export default function FullScreenPlayer() {
                 
               </div>
 
+              {/* Console Volume Fader Strip with Live dB Readout */}
+              <div className="flex items-center gap-3 w-full max-w-sm mx-auto px-2 pt-1">
+                <button
+                  onClick={() => setVolume(volume > 0 ? 0 : 1)}
+                  className={`p-1.5 rounded-md transition-colors ${volume === 0 ? 'text-red-400 bg-red-500/10' : `${textMuted}`}`}
+                  title={volume === 0 ? "Unmute" : "Mute"}
+                >
+                  {volume === 0 ? <VolumeX size={17} /> : volume < 0.5 ? <Volume1 size={17} /> : <Volume2 size={17} />}
+                </button>
+
+                <div className="flex-1 flex items-center">
+                  <Fader
+                    value={currentVolumeDb}
+                    onValueChange={(db) => {
+                      const nextGain = db === SILENCE_DB || db <= -60 ? 0 : dbToGain(db);
+                      setVolume(nextGain);
+                    }}
+                    min={-60}
+                    max={0}
+                    step={0.5}
+                    silenceAtMin={true}
+                    orientation="horizontal"
+                    variant="console"
+                    className="w-full"
+                  >
+                    <FaderTrack className={`h-1.5 md:h-2 rounded-full overflow-hidden relative ${bgControls}`}>
+                      <FaderRange className="bg-[#FAFF00] rounded-full" />
+                      <FaderThumb className="w-3.5 h-5 bg-[#141416] border border-[#FAFF00]/80 rounded shadow-md hover:border-[#FAFF00]" />
+                    </FaderTrack>
+                  </Fader>
+                </div>
+
+                <div className="w-14 text-right">
+                  <span className="font-mono text-[10px] md:text-[11px] font-bold tabular-nums text-[#FAFF00]">
+                    {volume === 0 ? "−∞ dB" : formatDb(currentVolumeDb, { decimals: 1 })}
+                  </span>
+                </div>
+              </div>
+
             </div>
           </div>
           <FocusMode isOpen={showFocusMode} onClose={() => setShowFocusMode(false)} />
+          <StudioMixerDrawer isOpen={isMixerOpen} onClose={() => setIsMixerOpen(false)} />
         </motion.div>
       )}
     </AnimatePresence>
